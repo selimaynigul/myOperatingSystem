@@ -7,7 +7,11 @@
 
 namespace myos
 {
-    
+
+    namespace hardwarecommunication {
+        class InterruptHandler;
+    }
+
     struct CPUState
     {
         common::uint32_t eax;
@@ -34,30 +38,57 @@ namespace myos
         common::uint32_t ss;        
     } __attribute__((packed));
     
-    
-    class Task
-    {
-    friend class TaskManager;
-    private:
+    typedef enum {
+        READY,
+        RUNNING,
+        BLOCKED,
+        TERMINATED
+    } ProcessState;
+
+    typedef struct {
         common::uint8_t stack[4096]; // 4 KiB
         CPUState* cpustate;
-    public:
-        Task(GlobalDescriptorTable *gdt, void entrypoint());
-        ~Task();
+        common::uint32_t pid;
+        common::uint32_t ppid;
+        common::uint32_t waitpid;
+        ProcessState state;      
+    } PCB;
+
+    class Task
+    {
+        friend class TaskManager;
+        private:
+            PCB *pcb;
+        public:
+            Task(GlobalDescriptorTable *gdt, void entrypoint());
+            ~Task();
     };
     
     
     class TaskManager
     {
-    private:
-        Task* tasks[256];
-        int numTasks;
-        int currentTask;
-    public:
-        TaskManager();
-        ~TaskManager();
-        bool AddTask(Task* task);
-        CPUState* Schedule(CPUState* cpustate);
+        friend class hardwarecommunication::InterruptHandler;
+        private:
+            Task *tasks[256];
+            int numTasks;
+            int currentTask;
+            GlobalDescriptorTable* gdt;
+       
+        protected: 
+            void PrintProcessTable();
+            common::uint32_t AddTask(void entrypoint());
+            common::uint32_t ExecTask(void entrypoint());
+            common::uint32_t ForkTask(CPUState* cpustate);
+            common::uint32_t ForkTask2(CPUState* cpustate);
+            bool ExitCurrentTask();
+            common::uint32_t getpid();
+            bool WaitTask(common::uint32_t pid);
+            int getIndex(common::uint32_t pid);
+        public:
+            TaskManager(GlobalDescriptorTable* gdt);
+            ~TaskManager();
+            bool InitTask(Task* task);
+            CPUState* Schedule(CPUState* cpustate);
     };
     
     

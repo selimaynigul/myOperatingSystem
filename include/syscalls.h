@@ -11,14 +11,22 @@ namespace myos
     
     class SyscallHandler : public hardwarecommunication::InterruptHandler
     {
-        
-    public:
-        SyscallHandler(hardwarecommunication::InterruptManager* interruptManager, myos::common::uint8_t InterruptNumber);
-        ~SyscallHandler();
-        
-        virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
+            
+        public:
+            SyscallHandler(hardwarecommunication::InterruptManager* interruptManager, myos::common::uint8_t InterruptNumber);
+            ~SyscallHandler();
+            
+            virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
 
     };
+
+    int getpid();
+    void waitpid(common::uint8_t wPid);
+    void sys_exit();
+    void sysprintf(char* str);
+    int fork(int* pid);
+    int exec(void entrypoint());
+    int addTask(void entrypoint());
     
     
 }

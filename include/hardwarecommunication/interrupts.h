@@ -17,13 +17,15 @@ namespace myos
 
         class InterruptHandler
         {
-        protected:
-            myos::common::uint8_t InterruptNumber;
-            InterruptManager* interruptManager;
-            InterruptHandler(InterruptManager* interruptManager, myos::common::uint8_t InterruptNumber);
-            ~InterruptHandler();
-        public:
-            virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
+            protected:
+                myos::common::uint8_t InterruptNumber;
+                InterruptManager* interruptManager;
+                InterruptHandler(InterruptManager* interruptManager, myos::common::uint8_t InterruptNumber);
+                ~InterruptHandler();
+            public:
+                virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
+                common::uint32_t sys_fork(CPUState* cpustate);
+
         };
 
 

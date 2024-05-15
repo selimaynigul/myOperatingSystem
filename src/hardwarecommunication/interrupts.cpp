@@ -10,6 +10,15 @@ void printfHex(uint8_t);
 
 
 
+/* 
+bool InterruptHandler::sys_waitpid(common::uint32_t pid) {
+    return interruptManager->taskManager->WaitTask(pid);
+}
+ */
+
+common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
+    return interruptManager->taskManager->ForkTask(cpustate);
+}
 
 
 InterruptHandler::InterruptHandler(InterruptManager* interruptManager, uint8_t InterruptNumber)
@@ -30,20 +39,8 @@ uint32_t InterruptHandler::HandleInterrupt(uint32_t esp)
     return esp;
 }
 
-
-
-
-
-
-
-
-
-
 InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
 InterruptManager* InterruptManager::ActiveInterruptManager = 0;
-
-
-
 
 void InterruptManager::SetInterruptDescriptorTableEntry(uint8_t interrupt,
     uint16_t CodeSegment, void (*handler)(), uint8_t DescriptorPrivilegeLevel, uint8_t DescriptorType)
@@ -169,9 +166,15 @@ void InterruptManager::Deactivate()
     }
 }
 
+
+
+
+
+
+
 uint32_t InterruptManager::HandleInterrupt(uint8_t interrupt, uint32_t esp)
 {
-    if(ActiveInterruptManager != 0)
+    if(ActiveInterruptManager != 0) 
         return ActiveInterruptManager->DoHandleInterrupt(interrupt, esp);
     return esp;
 }
@@ -185,8 +188,8 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     }
     else if(interrupt != hardwareInterruptOffset)
     {
-        printf("UNHANDLED INTERRUPT 0x");
-        printfHex(interrupt);
+       // printf("UNHANDLED INTERRUPT 0x");
+       // printfHex(interrupt);
     }
     
     if(interrupt == hardwareInterruptOffset)

@@ -1,4 +1,3 @@
-
 #include <common/types.h>
 #include <gdt.h>
 #include <memorymanagement.h>
@@ -13,6 +12,9 @@
 #include <gui/desktop.h>
 #include <gui/window.h>
 #include <multitasking.h>
+
+
+
 
 #include <drivers/amd_am79c973.h>
 
@@ -87,6 +89,33 @@ void printfHex32(uint32_t key)
 }
 
 
+void printfInt(int num)
+{
+    char buffer[32]; // Assuming a maximum of 32 digits for an int
+    int i = 0;
+    if (num < 0) {
+        printf("-");
+        num = -num;
+    }
+    if (num == 0) {
+        printf("0");
+        return;
+    }
+    while (num != 0) {
+        buffer[i++] = '0' + (num % 10);
+        num /= 10;
+    }
+    buffer[i] = '\0'; // Null-terminate the string
+    char reversed_buffer[32];
+    int j = 0;
+    // Reverse the buffer to get the correct order of digits
+    for (int k = i - 1; k >= 0; --k) {
+        reversed_buffer[j++] = buffer[k];
+    }
+    reversed_buffer[j] = '\0'; // Null-terminate the reversed string
+    printf(reversed_buffer); // Print the reversed string
+}
+
 
 
 
@@ -137,30 +166,79 @@ public:
     
 };
 
-
-
-
-void sysprintf(char* str)
-{
-    asm("int $0x80" : : "a" (4), "b" (str));
-}
-
-void taskA()
-{
-    while(true)
-        sysprintf("A");
-}
-
-void taskB()
-{
-    while(true)
-        sysprintf("B");
+void longTask() {
+            printf(" LongEntered ");
+    int n = 100000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result = i * j;
+          
+        }
+    }
+            printf(" LongExitted ");
 }
 
 
+void collatzTask() {
+    int k = 0;
+    for (int i = 1; i <= 100; ++i) {
+       // printf("Output: ");
+       // printfInt(i);
+        k++;
+        while (i != 1) {
+          //  printfInt(i);
+          //  printf(",");
+    
+            if (i % 2 == 0) {
+               i /= 2;
+            } else {
+               i = 3 *i + 1;
+            }
+        }
+      //  printf("1");
+    }
+
+}
+
+void initProcess()
+{      
+    int pid = 3;
+    int pid2;
+    int pid3;
+    
+    int pidReturn = fork(&pid);
+    printf("pidreturn: ");
+    printfInt(pidReturn);
 
 
+    if (pid == 0) {
+        printf("child icindeyim");
+        longTask();
+    } 
+    else {
+        printf("parent icindeyim pid: ");
+        printfInt(pid);
+        longTask();
+       /*  fork(&pid2);
+        if (pid2 == 0) {
+            collatzTask();
+            longTask();
+        } 
+        else {
+            fork(&pid3);
+            if (pid3 == 0) {
+                collatzTask();
+                longTask(); 
+            } 
+        } */
+    }
 
+    printf(" CIKTIM ");
+    while(true);
+
+}
+ 
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -175,39 +253,20 @@ extern "C" void callConstructors()
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
 {
-    printf("Hello World! --- http://www.AlgorithMan.de\n");
-
+    printf("Hello World!\n");
     GlobalDescriptorTable gdt;
-    
-    
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
-    
-    printf("heap: 0x");
-    printfHex((heap >> 24) & 0xFF);
-    printfHex((heap >> 16) & 0xFF);
-    printfHex((heap >> 8 ) & 0xFF);
-    printfHex((heap      ) & 0xFF);
-    
     void* allocated = memoryManager.malloc(1024);
-    printf("\nallocated: 0x");
-    printfHex(((size_t)allocated >> 24) & 0xFF);
-    printfHex(((size_t)allocated >> 16) & 0xFF);
-    printfHex(((size_t)allocated >> 8 ) & 0xFF);
-    printfHex(((size_t)allocated      ) & 0xFF);
-    printf("\n");
-    
-    TaskManager taskManager;
-    Task task1(&gdt, taskA);
-    Task task2(&gdt, taskB);
-    taskManager.AddTask(&task1);
-    taskManager.AddTask(&task2);
 
+    TaskManager taskManager(&gdt);
+    Task initTask(&gdt, initProcess);
+    taskManager.InitTask(&initTask);
     
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);
-    
+    /*
     printf("Initializing Hardware, Stage 1\n");
     
     #ifdef GRAPHICSMODE
@@ -252,7 +311,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
         Window win2(&desktop, 40,15,30,30, 0x00,0xA8,0x00);
         desktop.AddChild(&win2);
     #endif
-
+*/
 
     /*
     printf("\nS-ATA primary master: ");
@@ -278,8 +337,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     */
     
     
-    amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
-    eth0->Send((uint8_t*)"Hello Network", 13);
+   // amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
+   // eth0->Send((uint8_t*)"Hello Network", 13);
         
 
     interrupts.Activate();
@@ -287,8 +346,11 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
 
     while(1)
     {
+
+        /*
         #ifdef GRAPHICSMODE
             desktop.Draw(&vga);
         #endif
+        */
     }
 }

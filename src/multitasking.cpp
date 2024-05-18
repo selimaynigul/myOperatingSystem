@@ -67,13 +67,43 @@ TaskManager::~TaskManager()
 {
 }
 
-bool TaskManager::InitTask(Task &task)
+bool TaskManager::InitTask(Task* task)
 {
     if(numTasks >= 256)
         return false;
-    tasks[numTasks++] = task;
+
+   // tasks[numTasks++] = *task;
+
+    task->pid = numTasks;    
+    CopyTask(task, &tasks[numTasks]); 
+    numTasks++;
+
     return true;
 }
+
+void TaskManager::CopyTask(Task *src, Task *dest) {
+    dest->state = src->state;
+    dest->pid = src->pid;
+    dest->ppid = src->ppid;
+    dest->waitpid = src->waitpid;
+
+    // Copy the stack
+    for (int i = 0; i < sizeof(src->stack); ++i) {
+        dest->stack[i] = src->stack[i];
+    }
+
+    // Calculate the offset of cpustate within the source stack
+    common::uint32_t srcStackBase = (common::uint32_t)src->stack;
+    common::uint32_t srcCpuStateOffset = (common::uint32_t)src->cpustate - srcStackBase;
+
+    // Set the destination cpustate pointer to the corresponding position in the destination stack
+    common::uint32_t destStackBase = (common::uint32_t)dest->stack;
+    dest->cpustate = (CPUState*)(destStackBase + srcCpuStateOffset);
+
+    // Copy the CPU state
+    *(dest->cpustate) = *(src->cpustate);
+}
+
 
 
 common::uint32_t TaskManager::getpid() {

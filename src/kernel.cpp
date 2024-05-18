@@ -167,7 +167,7 @@ public:
 };
 
 void longTask() {
-            printf(" LongEntered ");
+printf("LongEntered \n");
     int n = 100000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
@@ -176,7 +176,7 @@ void longTask() {
           
         }
     }
-            printf(" LongExitted ");
+            printf("LongExitted \n");
 }
 
 
@@ -207,36 +207,46 @@ void initProcess()
     int pid2;
     int pid3;
     
-    fork(&pid);
-   printf("FORK ");
+    int returnedPid = fork(&pid);
+    printf("FORKED\n");
    
-    if (pid == 0) {
-        printf(" child icindeyim");
+    if (returnedPid == pid) {
+        printf("child icindeyim\n");
+        collatzTask();
         longTask();
-        while(true);
     } 
     else {
-        printf(" parent icindeyim pid: ");
+        printf("parent icindeyim pid: ");
         printfInt(pid);
-        longTask();
-       /*  fork(&pid2);
-        if (pid2 == 0) {
+        printf("\n");
+        returnedPid = fork(&pid2);
+        printf("FORKED in 2. parent\n");
+        if (pid2 == returnedPid) {
+            printf("ikinci child icindeyim\n");
             collatzTask();
             longTask();
         } 
         else {
-            fork(&pid3);
-            if (pid3 == 0) {
+            printf("ikinci parent icindeyim pid: ");
+            printfInt(pid2);
+            printf("\n");
+            returnedPid = fork(&pid3);
+            printf("FORKED in 3. parent\n");
+            if (pid3 == returnedPid) {
+                printf("ucuncu child icindeyim\n");
                 collatzTask();
                 longTask(); 
             } 
-        } */
-    while(true);
+            else {
+                printf("ucuncu parent icindeyim pid: ");
+                printfInt(pid3);
+                printf("\n");
+            }
+        } 
+    //while(true);
     }
 
     printf(" CIKTIM ");
-
-
 }
  
 
@@ -262,7 +272,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager(&gdt);
     Task initTask(&gdt, initProcess);
-    taskManager.InitTask(initTask);
+    taskManager.InitTask(&initTask);
     
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);

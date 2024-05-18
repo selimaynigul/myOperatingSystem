@@ -84,7 +84,8 @@ namespace myos
         public:
             TaskManager(GlobalDescriptorTable* gdt); 
             ~TaskManager();
-            bool InitTask(Task &task);
+            bool InitTask(Task*task);
+            void CopyTask(Task *src, Task *dest);
             CPUState* Schedule(CPUState* cpustate);
     };
     

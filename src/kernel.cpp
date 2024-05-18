@@ -203,21 +203,20 @@ void collatzTask() {
 
 void initProcess()
 {      
-    int pid = 3;
+    int pid = 0;
     int pid2;
     int pid3;
     
-    int pidReturn = fork(&pid);
-    printf("pidreturn: ");
-    printfInt(pidReturn);
-
-
+    fork(&pid);
+   printf("FORK ");
+   
     if (pid == 0) {
-        printf("child icindeyim");
+        printf(" child icindeyim");
         longTask();
+        while(true);
     } 
     else {
-        printf("parent icindeyim pid: ");
+        printf(" parent icindeyim pid: ");
         printfInt(pid);
         longTask();
        /*  fork(&pid2);
@@ -232,10 +231,11 @@ void initProcess()
                 longTask(); 
             } 
         } */
+    while(true);
     }
 
     printf(" CIKTIM ");
-    while(true);
+
 
 }
  
@@ -262,7 +262,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager(&gdt);
     Task initTask(&gdt, initProcess);
-    taskManager.InitTask(&initTask);
+    taskManager.InitTask(initTask);
     
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);

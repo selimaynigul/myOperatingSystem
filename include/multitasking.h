@@ -45,21 +45,18 @@ namespace myos
         TERMINATED
     } ProcessState;
 
-    typedef struct {
-        common::uint8_t stack[4096]; // 4 KiB
-        CPUState* cpustate;
-        common::uint32_t pid;
-        common::uint32_t ppid;
-        common::uint32_t waitpid;
-        ProcessState state;      
-    } PCB;
-
     class Task
     {
         friend class TaskManager;
         private:
-            PCB *pcb;
+            common::uint8_t stack[4096]; // 4 KiB
+            CPUState* cpustate;
+            common::uint32_t pid;
+            common::uint32_t ppid;
+            common::uint32_t waitpid;
+            ProcessState state; 
         public:
+            Task();
             Task(GlobalDescriptorTable *gdt, void entrypoint());
             ~Task();
     };
@@ -69,7 +66,7 @@ namespace myos
     {
         friend class hardwarecommunication::InterruptHandler;
         private:
-            Task *tasks[256];
+            Task tasks[256];
             int numTasks;
             int currentTask;
             GlobalDescriptorTable* gdt;
@@ -85,9 +82,9 @@ namespace myos
             bool WaitTask(common::uint32_t pid);
             int getIndex(common::uint32_t pid);
         public:
-            TaskManager(GlobalDescriptorTable* gdt);
+            TaskManager(GlobalDescriptorTable* gdt); 
             ~TaskManager();
-            bool InitTask(Task* task);
+            bool InitTask(Task &task);
             CPUState* Schedule(CPUState* cpustate);
     };
     

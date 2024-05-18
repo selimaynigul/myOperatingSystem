@@ -190,6 +190,8 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     {
        // printf("UNHANDLED INTERRUPT 0x");
        // printfHex(interrupt);
+        esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
+
     }
     
     if(interrupt == hardwareInterruptOffset)

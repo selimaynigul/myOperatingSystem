@@ -25,6 +25,8 @@ namespace myos
             public:
                 virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
                 common::uint32_t sys_fork(CPUState* cpustate);
+                bool sys_exit();
+                bool sys_waitpid(common::uint32_t pid);
 
         };
 

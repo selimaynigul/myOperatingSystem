@@ -20,6 +20,14 @@ common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
     return interruptManager->taskManager->ForkTask(cpustate);
 }
 
+bool InterruptHandler::sys_exit() {
+    return interruptManager->taskManager->ExitCurrentTask();
+}
+
+bool InterruptHandler::sys_waitpid(common::uint32_t pid) {
+    return interruptManager->taskManager->WaitTask(pid);
+}
+
 
 InterruptHandler::InterruptHandler(InterruptManager* interruptManager, uint8_t InterruptNumber)
 {
@@ -190,7 +198,7 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     {
        // printf("UNHANDLED INTERRUPT 0x");
        // printfHex(interrupt);
-        esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
+      //  esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
 
     }
     

@@ -30,12 +30,17 @@ void myos::waitpid(common::uint8_t wPid) {
     asm("int $0x80" : : "a"(Syscalls::WAITPID), "b"(wPid));
 }
 
-void myos::sys_exit() {
+void myos::exit() {
     asm("int $0x80" : : "a"(Syscalls::EXIT));
 }
 
 void myos::sysprintf(char* str) {
     asm("int $0x80" : : "a"(Syscalls::PRINTF), "b"(str));
+}
+
+int myos::fork() {
+    int pid;
+    return fork(&pid);
 }
 
 int myos::fork(int *pid) {
@@ -85,8 +90,8 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;    
 
         case Syscalls::EXIT: 
-          //  if(InterruptHandler::sys_exit()) 
-           //     return InterruptHandler::HandleInterrupt(esp);
+           if(InterruptHandler::sys_exit()) 
+              return InterruptHandler::HandleInterrupt(esp);
             break;    
 
         case Syscalls::GETPID: 
@@ -94,8 +99,8 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break; 
 
         case Syscalls::WAITPID: 
-            //if(InterruptHandler::sys_waitpid()) 
-              //      return InterruptHandler::HandleInterrupt(esp);
+            if(InterruptHandler::sys_waitpid(esp)) 
+                    return InterruptHandler::HandleInterrupt(esp);
             break;    
 
         case Syscalls::ADDTASK: 

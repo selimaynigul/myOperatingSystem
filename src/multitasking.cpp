@@ -110,44 +110,22 @@ common::uint32_t TaskManager::getpid() {
     return tasks[currentTask].pid;
 }
 
- common::uint32_t TaskManager::ForkTask2(CPUState* cpustate)
-{
-    if(numTasks >= 256)
-        return 0;
- 
-    tasks[numTasks].state=ProcessState::READY;
-    tasks[numTasks].ppid=tasks[currentTask].pid;
-   // tasks[numTasks].pid=Task::pIdCounter++;
-    for (int i = 0; i < sizeof(tasks[currentTask].stack); i++)
-    {
-        tasks[numTasks].stack[i]=tasks[currentTask].stack[i];
-    }
-    //Stackten yer alında cpustate'in konumu değişiyor bu nedenle şuanki taskın offsetini hesaplayıp yeni oluşan process'in cpu statenin konumunu ona göre düzenliyorum. Bu işlemi yapmazsam process düzgün şekilde devam etmiyor.
-    common::uint32_t currentTaskOffset=(((common::uint32_t)cpustate - (common::uint32_t) tasks[currentTask].stack));
-    tasks[numTasks].cpustate=(CPUState*)(((common::uint32_t) tasks[numTasks].stack) + currentTaskOffset);
- 
-    //Burada ECX' yeni taskın process id'sini atıyorum. Syscall'a return edebilmek için.
-    tasks[numTasks].cpustate->ecx = 0;
-    numTasks++;
-    return tasks[numTasks-1].pid;
-} 
 
-
- common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
+common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 
     if (numTasks >= 256) 
         return -1; 
-    
+
     tasks[numTasks].state = ProcessState::READY;
     tasks[numTasks].pid = numTasks;
     tasks[numTasks].ppid = getpid();
 
     common::uint32_t currentTaskOffset = (((common::uint32_t)cpustate - (common::uint32_t) tasks[currentTask].stack));
     tasks[numTasks].cpustate = (CPUState*)(((common::uint32_t) tasks[numTasks].stack) + currentTaskOffset);
-    
+
     for (int i = 0; i < sizeof(tasks[currentTask].stack); i++)
         tasks[numTasks].stack[i] = tasks[currentTask].stack[i];
-    
+
     tasks[numTasks].cpustate->ecx = 0;
     numTasks++;
 
@@ -155,6 +133,9 @@ common::uint32_t TaskManager::getpid() {
 }
 
 bool TaskManager::ExitCurrentTask() {
+    printf("EXIT: ");
+    printfInt(currentTask);
+    printf("\n");
     tasks[currentTask].state = ProcessState::TERMINATED;
     return true;
 }
@@ -169,31 +150,38 @@ int TaskManager::getIndex(common::uint32_t pid) {
 }
 
 bool TaskManager::WaitTask(common::uint32_t esp) {
+     printf("***WAITPID: ");
     CPUState* cpustate = (CPUState*)esp;
     common::uint32_t pid = cpustate->ebx;
 
+    printfInt(pid);
+    printf(", ");
+    printfInt(tasks[currentTask].pid);
+        printf("\n");
     if(tasks[currentTask].pid == pid || pid == 0) {
         return false;
     }
 
+    return true;
+ printf("burda2\n");
     int index = getIndex(pid);
     if (index == -1) {
         return false;
     }
-
+ printf("burda3\n");
     if(numTasks <= index || tasks[index].state == ProcessState::TERMINATED) {
         return false;
     }
-
+ printf("burda4\n");
     tasks[currentTask].cpustate = cpustate;
     tasks[currentTask].waitpid = pid;
     tasks[currentTask].state = ProcessState::BLOCKED;
+    printf("burda5\n");
     return true;
 }
 
 
-CPUState* TaskManager::Schedule(CPUState* cpustate)
-{
+ /* CPUState* TaskManager::Schedule(CPUState* cpustate) {
 
     if(numTasks <= 0)
         return cpustate;
@@ -207,7 +195,40 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
 
     return tasks[currentTask].cpustate;
 }
+ 
+ */
 
+CPUState* TaskManager::Schedule(CPUState* cpustate) {
+    if (numTasks <= 0)
+        return cpustate;
 
+    if (currentTask >= 0)
+        tasks[currentTask].cpustate = cpustate;
 
+    int nextTask = currentTask;
+    do {
+        nextTask = (nextTask + 1) % numTasks;
+        if(tasks[nextTask].state == ProcessState::TERMINATED) {
+        }
+    } while (tasks[nextTask].state != ProcessState::READY);
+           /*  printf(" CU: ");
+            printfInt(nextTask);
+            printf(" "); */
+
+    currentTask = nextTask;
+   /*  printf("NUMTASKS: ");
+    printfInt(numTasks);
+    printf("\n");
+
+    printf("CURRENT STATE: ");
+    printfInt(tasks[currentTask].state);
+    printf("\n");
+
+    printf("CURRENT PID: ");
+    printfInt(tasks[currentTask].pid);
+    printf("\n");  */
+
+    return tasks[currentTask].cpustate;
+}
+    
     

@@ -22,9 +22,10 @@ namespace myos
 
     int getpid();
     void waitpid(common::uint8_t wPid);
-    void sys_exit();
+    void exit();
     void sysprintf(char* str);
     int fork(int* pid);
+    int fork();
     int exec(void entrypoint());
     int addTask(void entrypoint());
     

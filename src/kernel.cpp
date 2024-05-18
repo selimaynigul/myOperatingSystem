@@ -167,7 +167,7 @@ public:
 };
 
 void longTask() {
-printf("LongEntered \n");
+//printf("LongEntered \n");
     int n = 100000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
@@ -176,7 +176,8 @@ printf("LongEntered \n");
           
         }
     }
-            printf("LongExitted \n");
+  //  printf("LongExitted \n");
+    //while(true);
 }
 
 
@@ -185,7 +186,7 @@ void collatzTask() {
     for (int i = 1; i <= 100; ++i) {
        // printf("Output: ");
        // printfInt(i);
-        k++;
+         k++;
         while (i != 1) {
           //  printfInt(i);
           //  printf(",");
@@ -195,13 +196,20 @@ void collatzTask() {
             } else {
                i = 3 *i + 1;
             }
-        }
+        } 
       //  printf("1");
     }
-
+  //  while(true);
 }
 
-void initProcess()
+void childProcess() {
+    printf("child\n");
+    //collatzTask();
+    longTask();
+    exit();
+}
+/*
+ void initProcess()
 {      
     int pid = 0;
     int pid2;
@@ -212,7 +220,6 @@ void initProcess()
    
     if (returnedPid == pid) {
         printf("child icindeyim\n");
-        collatzTask();
         longTask();
     } 
     else {
@@ -223,7 +230,6 @@ void initProcess()
         printf("FORKED in 2. parent\n");
         if (pid2 == returnedPid) {
             printf("ikinci child icindeyim\n");
-            collatzTask();
             longTask();
         } 
         else {
@@ -234,13 +240,13 @@ void initProcess()
             printf("FORKED in 3. parent\n");
             if (pid3 == returnedPid) {
                 printf("ucuncu child icindeyim\n");
-                collatzTask();
                 longTask(); 
             } 
             else {
                 printf("ucuncu parent icindeyim pid: ");
                 printfInt(pid3);
                 printf("\n");
+                waitpid(pid3);
             }
         } 
     //while(true);
@@ -248,8 +254,124 @@ void initProcess()
 
     printf(" CIKTIM ");
 }
- 
+  */
 
+/*  void initProcess() {      
+
+    int pid;
+    int pid2;
+    int pid3;
+
+    int returnedPid = fork(&pid);
+
+    if (returnedPid == pid) {
+        childProcess();
+    } 
+    else {
+        returnedPid = fork(&pid2);
+        if (returnedPid == pid2) {
+            childProcess();
+        } 
+        else {
+            returnedPid = fork(&pid3);
+            if (returnedPid == pid3) {
+                childProcess();
+            } 
+            else {
+                printf("parent ");
+                printfInt(pid3);
+                printf("\n");
+            }
+        } 
+    }
+    while(true);
+    printf("exitting... ");
+}  *//* 
+ 
+ void initProcess() {      
+    int pid1, pid2, pid3;
+
+    int returnedPid1 = fork(&pid1);
+    printf("forked\n");
+    if (returnedPid1 == pid1) {
+        printf("Forked first child with PID ");
+        printfInt(pid1);
+        printf("\n");
+        waitpid(pid1);
+    } 
+    else {
+        printf(" first child ");
+        longTask();
+        exit();
+    }
+
+    printf(" HEREEEE ");
+
+    int returnedPid2 = fork(&pid2);
+    if (returnedPid2 == pid2) {
+        printf("Forked second child with PID ");
+        printfInt(pid2);
+        printf("\n");
+        waitpid(pid2);
+    } 
+    else {
+        printf(" second child ");
+        longTask();
+        exit();   
+    }
+
+    int returnedPid3 = fork(&pid3);
+    if (returnedPid3 == pid3) {
+        printf("Forked third child with PID ");
+        printfInt(pid3);
+        printf("\n");
+        waitpid(pid3);
+    } 
+    else {
+        printf(" third child ");
+        longTask();
+        exit();  
+    }
+    while(true);
+    printf("All children exited\n");
+}  */
+
+
+ void initProcess() {      
+
+    int pid;
+    int pid2;
+    int pid3;
+
+    int returnedPid = fork(&pid);
+    printf("forked\n");
+
+    if (returnedPid == pid) {
+        returnedPid = fork(&pid2);
+        if (returnedPid == pid2) {
+            returnedPid = fork(&pid3);
+            if (returnedPid == pid3) {
+                printf("parent ");
+                printfInt(pid3);
+                printf("\n");
+                waitpid(pid);
+                waitpid(pid2);
+                waitpid(pid3);
+            } 
+            else {
+                childProcess();
+            }
+        } 
+        else {
+            childProcess();
+        } 
+    } 
+    else {
+        childProcess();
+    }
+    while(true);
+    printf("exitting... ");
+}
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -258,8 +380,6 @@ extern "C" void callConstructors()
     for(constructor* i = &start_ctors; i != &end_ctors; i++)
         (*i)();
 }
-
-
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
 {

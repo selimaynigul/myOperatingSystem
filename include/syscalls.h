@@ -21,7 +21,7 @@ namespace myos
     };
 
     int getpid();
-    void waitpid(common::uint8_t wPid);
+    int waitpid(common::uint8_t wPid);
     void exit();
     void sysprintf(char* str);
     int fork(int* pid);

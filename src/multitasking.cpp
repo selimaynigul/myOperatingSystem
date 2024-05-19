@@ -13,6 +13,8 @@ Task::Task()
     pid = 0;
     ppid = 0;
     waitpid = 0;
+    waitnum = 0;
+    priority = 0;
     state = ProcessState::READY;
 }
 
@@ -109,7 +111,8 @@ bool TaskManager::InitTask(Task* task)
     if(numTasks >= 256)
         return false;
 
-    task->pid = numTasks;    
+    task->pid = numTasks;  
+  //  task->state = ProcessState::RUNNING;  
     CopyTask(task, &tasks[numTasks]); 
     numTasks++;
 
@@ -165,9 +168,9 @@ common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 }
 
 bool TaskManager::ExitCurrentTask() {
-   /*  printf("EXIT: ");
+    printf("EXIT: ");
     printfInt(currentTask);
-    printf("\n"); */
+    printf("\n"); 
     tasks[currentTask].state = ProcessState::TERMINATED;
 
     // if it's parent waits its child to terminate adjust necessary parts in the parent
@@ -190,27 +193,31 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     CPUState* cpustate = (CPUState*)esp;
     common::uint32_t pid = cpustate->ebx;
 
-  /*   printf("***WAITPID: waiting: ");
+    printf("***WAITPID: waiting: ");
     printfInt(pid);
     printf(", who is waiting: ");
     printfInt(tasks[currentTask].pid);
-    printf("\n");  */
+    printf("\n");  
 
     // if the waited process already terminated return false without waiting
     if (tasks[pid].state == ProcessState::TERMINATED) {
-       // printf("Already terminated\n");
+        printf("Already terminated: ");
+        printfInt(pid);
+        printf("\n");
+        
+        tasks[currentTask].cpustate->ecx = 0;
         return false;
     }
 
     tasks[pid].waitparent = true;
     tasks[currentTask].state = ProcessState::BLOCKED;
     tasks[currentTask].waitnum++;
-
+    
+    tasks[currentTask].cpustate->ecx = 1;
     return true;
 }
 
 CPUState* TaskManager::Schedule(CPUState* cpustate) {
-    printf("MALTAKAN ");
     if (numTasks <= 0)
         return cpustate;
 
@@ -228,5 +235,32 @@ CPUState* TaskManager::Schedule(CPUState* cpustate) {
  
     return tasks[currentTask].cpustate;
 }
-    
+
+CPUState* TaskManager::SchedulePriority(CPUState* cpustate) {
+    if (numTasks <= 0)
+        return cpustate;
+
+    if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
+        tasks[currentTask].cpustate = cpustate;
+        tasks[currentTask].state = ProcessState::READY;
+    }
+
+    int highestPriorityTask = -1;
+    for (int i = 0; i < numTasks; ++i) {
+        if (tasks[i].state == ProcessState::READY) {
+            if (highestPriorityTask == -1 || tasks[i].priority < tasks[highestPriorityTask].priority) {
+                highestPriorityTask = i;
+            }
+        }
+    }
+
+    if (highestPriorityTask == -1) {
+        // No READY task found, return the current CPU state
+        return cpustate;
+    }
+
+    currentTask = highestPriorityTask;
+    tasks[currentTask].state = ProcessState::RUNNING;
+    return tasks[currentTask].cpustate;
+}
     

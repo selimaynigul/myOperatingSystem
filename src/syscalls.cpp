@@ -25,8 +25,10 @@ int myos::getpid() {
 }
 
 // Wait for a specific process ID
-void myos::waitpid(common::uint8_t wPid) {
-    asm("int $0x80" : : "a"(Syscalls::WAITPID), "b"(wPid));
+int myos::waitpid(common::uint8_t wPid) {
+    int result;
+    asm("int $0x80" : "=c"(result) : "a"(Syscalls::WAITPID), "b"(wPid));
+    return result;
 }
 
 void myos::exit() {

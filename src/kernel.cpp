@@ -14,8 +14,6 @@
 #include <multitasking.h>
 
 
-
-
 #include <drivers/amd_am79c973.h>
 
 using namespace myos;
@@ -26,6 +24,7 @@ using namespace myos::gui;
 
 GlobalDescriptorTable gdt;
 TaskManager taskManager(&gdt);
+int strategy = 1;
 
 // #define GRAPHICSMODE
 
@@ -169,7 +168,31 @@ public:
 };
 
 void longTask() {
- //   printf("LongEntered\n");
+    printf("LongEntered\n");
+    int n = 100000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result = i * j;
+          
+        }
+    }
+  //  printf("LongExitted \n");
+}
+void longTask2() {
+    printf("Long 2 Entered\n");
+    int n = 100000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result = i * j;
+          
+        }
+    }
+  //  printf("LongExitted \n");
+}
+void longTask3() {
+   printf("Long 3 Entered\n");
     int n = 100000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
@@ -209,7 +232,9 @@ void childProcess() {
     exit();
 }
 
- void initProcess() {      
+ void partA_process() {   
+
+    printf("part A running\n");   
 
     int pid;
     int pid2;
@@ -240,6 +265,103 @@ void childProcess() {
     else {
         childProcess();
     }
+}
+
+
+unsigned int seed = 0; // Seed value for the random number generator
+
+int my_rand() {
+    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF;
+    return (int)(seed >> 16);
+}
+
+void partB_first() {
+    printf("part B running\n");
+
+    // Array of function pointers to the available programs
+    void (*programs[])() = {longTask, longTask2, longTask3}; // Replace with actual program function names
+    int numPrograms = sizeof(programs) / sizeof(programs[0]);
+
+    // Randomly choose one of the programs
+    int chosenProgramIndex = my_rand() % numPrograms;
+    void (*chosenProgram)() = programs[chosenProgramIndex];
+
+    int pids[10];
+
+    for (int i = 0; i < 10; ++i) {
+        int pid;
+        int returnedPid = fork(&pid);
+        if (returnedPid == pid) {
+            pids[i] = pid; // Store the PID of the child process
+        } else if (returnedPid == 0) {
+            // Child process: run the chosen program
+            chosenProgram();
+            exit(); // Exit after the program finishes
+        } else {
+            // Error handling
+            printf("Fork failed\n");
+        }
+    }
+
+    printf("10 processes started\n");
+
+    // Infinite loop to wait for all processes to terminate
+  /*   while (true) {
+        bool allTerminated = true;
+        for (int i = 0; i < 10; ++i) {
+            int status;
+            int result = waitpid(pids[i]);
+            if (result == 0) {
+                allTerminated = false; // Process has not terminated yet
+            }
+        }
+
+        if (allTerminated) {
+            printf("All processes finished\n");
+            break;
+        }
+    } */
+    for (int i = 0; i < 10; ++i) {
+        waitpid(pids[i]);
+    }
+    printf("SUCCESS\n");
+}
+
+void partB_second() {
+    printf("part B.2 running\n");   
+  
+}
+
+void partB_third() {
+    printf("part B.3 running\n");   
+
+}
+
+
+
+ void initProcess() { 
+
+    switch (strategy) {
+        case 0:
+            partA_process();
+            break;
+        
+        case 1:
+            partB_first();
+            break;
+
+        case 2:
+            partB_second();
+            break;
+        
+        case 3:
+            partB_third();
+            break;
+        
+        default:
+            break;
+    }     
+ 
 }
 
 typedef void (*constructor)();

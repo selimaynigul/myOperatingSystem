@@ -38,6 +38,7 @@ namespace myos
     
     typedef enum {
         READY,
+        RUNNING,
         BLOCKED,
         TERMINATED
     } ProcessState;
@@ -54,6 +55,7 @@ namespace myos
             common::uint32_t waitnum;
             ProcessState state;
             bool waitparent; 
+            int priority;
         public:
             Task();
             Task(GlobalDescriptorTable *gdt, void entrypoint());
@@ -82,6 +84,7 @@ namespace myos
             bool InitTask(Task*task);
             void CopyTask(Task *src, Task *dest);
             CPUState* Schedule(CPUState* cpustate);
+            CPUState* SchedulePriority(CPUState* cpustate);
             void PrintProcessTable();
     };
     

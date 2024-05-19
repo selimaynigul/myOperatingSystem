@@ -200,7 +200,7 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     printf("\n");  
 
     // if the waited process already terminated return false without waiting
-    if (tasks[pid].state == ProcessState::TERMINATED) {
+    if (tasks[pid].state == ProcessState::TERMINATED || pid == tasks[currentTask].pid) {
         printf("Already terminated: ");
         printfInt(pid);
         printf("\n");

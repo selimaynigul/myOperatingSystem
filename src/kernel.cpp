@@ -24,7 +24,7 @@ using namespace myos::gui;
 
 GlobalDescriptorTable gdt;
 TaskManager taskManager(&gdt);
-int strategy = 1;
+int strategy = 2;
 
 // #define GRAPHICSMODE
 
@@ -255,15 +255,18 @@ void childProcess() {
                 printf("finished\n");
             } 
             else {
-                childProcess();
+                longTask();
+                exit();
             }
         } 
         else {
-            childProcess();
+            longTask2();
+            exit();
         } 
     } 
     else {
-        childProcess();
+        longTask3();
+        exit();
     }
 }
 
@@ -276,7 +279,7 @@ int my_rand() {
 }
 
 void partB_first() {
-    printf("part B running\n");
+    printf("part B.1 running\n");
 
     // Array of function pointers to the available programs
     void (*programs[])() = {longTask, longTask2, longTask3}; // Replace with actual program function names
@@ -324,13 +327,49 @@ void partB_first() {
     for (int i = 0; i < 10; ++i) {
         waitpid(pids[i]);
     }
-    printf("SUCCESS\n");
+    printf("part b.1 finished\n");
 }
 
+
 void partB_second() {
-    printf("part B.2 running\n");   
+    printf("part b.2 running\n");
   
+// Array of functions representing the programs
+    void (*programs[])() = {longTask, longTask2, longTask3, longTask};
+    int numPrograms = sizeof(programs) / sizeof(programs[0]);
+    int pids[6];
+
+    // Choose 2 programs randomly
+    int chosen_programs[2];
+    for (int i = 0; i < 2; ++i) {
+        int chosenProgramIndex = my_rand() % numPrograms;
+        chosen_programs[i] = chosenProgramIndex; // Store the index of the chosen program
+    }
+
+    // Load each chosen program 3 times
+    int index = 0;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            int pid;
+            int returnedPid = fork(&pid);
+            if (returnedPid == pid) {
+                pids[index++] = pid;
+            }
+            else {
+                programs[chosen_programs[j]]();
+                exit();
+            }
+        }
+    }
+
+    // Wait for all child processes to terminate
+     for (int i = 0; i < 6; ++i) {
+        waitpid(pids[i]);
+    }
+
+    printf("Part b.2 finished\n");
 }
+
 
 void partB_third() {
     printf("part B.3 running\n");   

@@ -26,10 +26,7 @@ namespace myos
     void sysprintf(char* str);
     int fork(int* pid);
     int fork();
-    int exec(void entrypoint());
-    int addTask(void entrypoint());
-    
-    
+    int exec(void entrypoint());    
 }
 
 

@@ -4,10 +4,8 @@
 
 #include <common/types.h>
 #include <gdt.h>
-
 namespace myos
 {
-
     namespace hardwarecommunication {
         class InterruptHandler;
     }
@@ -40,7 +38,6 @@ namespace myos
     
     typedef enum {
         READY,
-        RUNNING,
         BLOCKED,
         TERMINATED
     } ProcessState;
@@ -63,7 +60,6 @@ namespace myos
             ~Task();
     };
     
-    
     class TaskManager
     {
         friend class hardwarecommunication::InterruptHandler;
@@ -74,21 +70,19 @@ namespace myos
             GlobalDescriptorTable* gdt;
        
         protected: 
-            void PrintProcessTable();
             common::uint32_t AddTask(void entrypoint());
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t ForkTask(CPUState* cpustate);
-            common::uint32_t ForkTask2(CPUState* cpustate);
+            bool WaitTask(common::uint32_t pid);
             bool ExitCurrentTask();
             common::uint32_t getpid();
-            bool WaitTask(common::uint32_t pid);
-            int getIndex(common::uint32_t pid);
         public:
             TaskManager(GlobalDescriptorTable* gdt); 
             ~TaskManager();
             bool InitTask(Task*task);
             void CopyTask(Task *src, Task *dest);
             CPUState* Schedule(CPUState* cpustate);
+            void PrintProcessTable();
     };
     
     

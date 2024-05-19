@@ -8,14 +8,6 @@ using namespace myos::hardwarecommunication;
 void printf(char* str);
 void printfHex(uint8_t);
 
-
-
-/* 
-bool InterruptHandler::sys_waitpid(common::uint32_t pid) {
-    return interruptManager->taskManager->WaitTask(pid);
-}
- */
-
 common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
     return interruptManager->taskManager->ForkTask(cpustate);
 }
@@ -197,8 +189,6 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     {
        // printf("UNHANDLED INTERRUPT 0x");
        // printfHex(interrupt);
-      //  esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
-
     }
     
     if(interrupt == hardwareInterruptOffset)

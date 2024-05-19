@@ -18,15 +18,17 @@
 
 #include <drivers/amd_am79c973.h>
 
-
-// #define GRAPHICSMODE
-
-
 using namespace myos;
 using namespace myos::common;
 using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
 using namespace myos::gui;
+
+GlobalDescriptorTable gdt;
+TaskManager taskManager(&gdt);
+
+// #define GRAPHICSMODE
+
 
 
 
@@ -167,7 +169,7 @@ public:
 };
 
 void longTask() {
-//printf("LongEntered \n");
+ //   printf("LongEntered\n");
     int n = 100000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
@@ -176,8 +178,7 @@ void longTask() {
           
         }
     }
-    printf("LongExitted \n");
-    //while(true);
+  //  printf("LongExitted \n");
 }
 
 
@@ -199,143 +200,14 @@ void collatzTask() {
         } 
       //  printf("1");
     }
-  //  while(true);
 }
 
 void childProcess() {
-    printf("child\n");
-    //collatzTask();
+   // printf("child\n");
+   // collatzTask();
     longTask();
     exit();
 }
-/*
- void initProcess()
-{      
-    int pid = 0;
-    int pid2;
-    int pid3;
-    
-    int returnedPid = fork(&pid);
-    printf("FORKED\n");
-   
-    if (returnedPid == pid) {
-        printf("child icindeyim\n");
-        longTask();
-    } 
-    else {
-        printf("parent icindeyim pid: ");
-        printfInt(pid);
-        printf("\n");
-        returnedPid = fork(&pid2);
-        printf("FORKED in 2. parent\n");
-        if (pid2 == returnedPid) {
-            printf("ikinci child icindeyim\n");
-            longTask();
-        } 
-        else {
-            printf("ikinci parent icindeyim pid: ");
-            printfInt(pid2);
-            printf("\n");
-            returnedPid = fork(&pid3);
-            printf("FORKED in 3. parent\n");
-            if (pid3 == returnedPid) {
-                printf("ucuncu child icindeyim\n");
-                longTask(); 
-            } 
-            else {
-                printf("ucuncu parent icindeyim pid: ");
-                printfInt(pid3);
-                printf("\n");
-                waitpid(pid3);
-            }
-        } 
-    //while(true);
-    }
-
-    printf(" CIKTIM ");
-}
-  */
-
-/*  void initProcess() {      
-
-    int pid;
-    int pid2;
-    int pid3;
-
-    int returnedPid = fork(&pid);
-
-    if (returnedPid == pid) {
-        childProcess();
-    } 
-    else {
-        returnedPid = fork(&pid2);
-        if (returnedPid == pid2) {
-            childProcess();
-        } 
-        else {
-            returnedPid = fork(&pid3);
-            if (returnedPid == pid3) {
-                childProcess();
-            } 
-            else {
-                printf("parent ");
-                printfInt(pid3);
-                printf("\n");
-            }
-        } 
-    }
-    while(true);
-    printf("exitting... ");
-}  *//* 
- 
- void initProcess() {      
-    int pid1, pid2, pid3;
-
-    int returnedPid1 = fork(&pid1);
-    printf("forked\n");
-    if (returnedPid1 == pid1) {
-        printf("Forked first child with PID ");
-        printfInt(pid1);
-        printf("\n");
-        waitpid(pid1);
-    } 
-    else {
-        printf(" first child ");
-        longTask();
-        exit();
-    }
-
-    printf(" HEREEEE ");
-
-    int returnedPid2 = fork(&pid2);
-    if (returnedPid2 == pid2) {
-        printf("Forked second child with PID ");
-        printfInt(pid2);
-        printf("\n");
-        waitpid(pid2);
-    } 
-    else {
-        printf(" second child ");
-        longTask();
-        exit();   
-    }
-
-    int returnedPid3 = fork(&pid3);
-    if (returnedPid3 == pid3) {
-        printf("Forked third child with PID ");
-        printfInt(pid3);
-        printf("\n");
-        waitpid(pid3);
-    } 
-    else {
-        printf(" third child ");
-        longTask();
-        exit();  
-    }
-    while(true);
-    printf("All children exited\n");
-}  */
-
 
  void initProcess() {      
 
@@ -344,20 +216,18 @@ void childProcess() {
     int pid3;
 
     int returnedPid = fork(&pid);
-    printf("forked\n");
+   // printf("forked\n");
 
     if (returnedPid == pid) {
         returnedPid = fork(&pid2);
         if (returnedPid == pid2) {
             returnedPid = fork(&pid3);
             if (returnedPid == pid3) {
-                printf("parent ");
-                printfInt(pid3);
-                printf("\n");
+                printf("forks successful\n");
                 waitpid(pid);
                 waitpid(pid2);
                 waitpid(pid3);
-                printf("finish\n");
+                printf("finished\n");
             } 
             else {
                 childProcess();
@@ -370,8 +240,8 @@ void childProcess() {
     else {
         childProcess();
     }
-    while(true);
 }
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -384,13 +254,12 @@ extern "C" void callConstructors()
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
 {
     printf("Hello World!\n");
-    GlobalDescriptorTable gdt;
+    
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
     void* allocated = memoryManager.malloc(1024);
 
-    TaskManager taskManager(&gdt);
     Task initTask(&gdt, initProcess);
     taskManager.InitTask(&initTask);
     

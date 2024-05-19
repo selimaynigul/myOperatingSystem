@@ -57,6 +57,7 @@ Task::~Task()
 }
 
 
+
 TaskManager::TaskManager(GlobalDescriptorTable* gdt)
 {
     this->gdt = gdt;
@@ -69,12 +70,44 @@ TaskManager::~TaskManager()
 {
 }
 
+void TaskManager::PrintProcessTable() {
+    printf("\n");
+    printf(" PID | PPID | WaitNum | WaitParent | State\n");
+    printf("-----|------|---------|------------|-------\n");
+
+    for (int i = 0; i < numTasks; ++i) {
+        printf(" ");
+        printfInt(tasks[i].pid);
+        printf("   | ");
+        printfInt(tasks[i].ppid);
+        printf("    | ");
+        printfInt(tasks[i].waitnum);
+        printf("       | ");
+        if (tasks[i].waitparent) {
+            printf("true ");
+        } 
+        else {
+            printf("false");
+        }
+        printf("      | ");
+        if (tasks[i].state == ProcessState::READY) {
+            printf("READY");
+        }
+        else if (tasks[i].state == ProcessState::BLOCKED) {
+            printf("BLOCKED");
+        }
+        else {
+            printf("TERMINATED");
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
 bool TaskManager::InitTask(Task* task)
 {
     if(numTasks >= 256)
         return false;
-
-   // tasks[numTasks++] = *task;
 
     task->pid = numTasks;    
     CopyTask(task, &tasks[numTasks]); 
@@ -106,12 +139,9 @@ void TaskManager::CopyTask(Task *src, Task *dest) {
     *(dest->cpustate) = *(src->cpustate);
 }
 
-
-
 common::uint32_t TaskManager::getpid() {
     return tasks[currentTask].pid;
 }
-
 
 common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 
@@ -135,12 +165,12 @@ common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 }
 
 bool TaskManager::ExitCurrentTask() {
-    printf("EXIT: ");
+   /*  printf("EXIT: ");
     printfInt(currentTask);
-    printf("\n");
+    printf("\n"); */
     tasks[currentTask].state = ProcessState::TERMINATED;
 
-    // if it's parent waits its child to terminate
+    // if it's parent waits its child to terminate adjust necessary parts in the parent
     if (tasks[currentTask].waitparent) {
         int ppid = tasks[currentTask].ppid;
         if (tasks[ppid].state == BLOCKED) {
@@ -153,81 +183,34 @@ bool TaskManager::ExitCurrentTask() {
             }
         }
     }
-
     return true;
-}
-
-int TaskManager::getIndex(common::uint32_t pid) {
-    for (int i = 0; i < numTasks; i++) {
-        if (tasks[i].pid == pid) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 bool TaskManager::WaitTask(common::uint32_t esp) {
     CPUState* cpustate = (CPUState*)esp;
     common::uint32_t pid = cpustate->ebx;
 
-    printf("***WAITPID: waiting: ");
+  /*   printf("***WAITPID: waiting: ");
     printfInt(pid);
     printf(", who is waiting: ");
     printfInt(tasks[currentTask].pid);
-    printf("\n"); 
+    printf("\n");  */
 
+    // if the waited process already terminated return false without waiting
     if (tasks[pid].state == ProcessState::TERMINATED) {
-        printf("Already terminated\n");
+       // printf("Already terminated\n");
         return false;
     }
-
 
     tasks[pid].waitparent = true;
     tasks[currentTask].state = ProcessState::BLOCKED;
     tasks[currentTask].waitnum++;
 
     return true;
-/* 
-    if(tasks[currentTask].pid == pid || pid == 0) {
-        return false;
-    }
-
- printf("burda2\n");
-    int index = getIndex(pid);
-    if (index == -1) {
-        return false;
-    }
- printf("burda3\n");
-    if(numTasks <= index || tasks[index].state == ProcessState::TERMINATED) {
-        return false;
-    }
- printf("burda4\n");
-    tasks[currentTask].cpustate = cpustate;
-    tasks[currentTask].waitpid = pid;
-    tasks[currentTask].state = ProcessState::BLOCKED;
-    printf("burda5\n");
-    return true; */
 }
-
-
- /* CPUState* TaskManager::Schedule(CPUState* cpustate) {
-
-    if(numTasks <= 0)
-        return cpustate;
-    
-    if(currentTask >= 0)
-        tasks[currentTask].cpustate = cpustate;
-    
-    if(++currentTask >= numTasks)
-        currentTask %= numTasks;
-
-
-    return tasks[currentTask].cpustate;
-}
- 
- */
 
 CPUState* TaskManager::Schedule(CPUState* cpustate) {
+    printf("MALTAKAN ");
     if (numTasks <= 0)
         return cpustate;
 
@@ -240,23 +223,9 @@ CPUState* TaskManager::Schedule(CPUState* cpustate) {
         if(tasks[nextTask].state == ProcessState::TERMINATED) {
         }
     } while (tasks[nextTask].state != ProcessState::READY);
-           /*  printf(" CU: ");
-            printfInt(nextTask);
-            printf(" "); */
 
     currentTask = nextTask;
-   /*  printf("NUMTASKS: ");
-    printfInt(numTasks);
-    printf("\n");
-
-    printf("CURRENT STATE: ");
-    printfInt(tasks[currentTask].state);
-    printf("\n");
-
-    printf("CURRENT PID: ");
-    printfInt(tasks[currentTask].pid);
-    printf("\n");  */
-
+ 
     return tasks[currentTask].cpustate;
 }
     

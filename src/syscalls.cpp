@@ -15,7 +15,6 @@ enum Syscalls {
     FORK,
     EXEC,
     PRINTF,
-    ADDTASK
 };
 
 // Get process ID
@@ -54,12 +53,6 @@ int myos::exec(void entrypoint()) {
     return result;
 }
 
-int myos::addTask(void entrypoint()) {
-    int result;
-    asm("int $0x80" : "=c"(result) : "a"(Syscalls::ADDTASK), "b"((uint32_t)entrypoint));
-    return result;
-}
-
 SyscallHandler::SyscallHandler(InterruptManager* interruptManager, uint8_t InterruptNumber)
 :    InterruptHandler(interruptManager, InterruptNumber  + interruptManager->HardwareInterruptOffset())
 {
@@ -95,19 +88,14 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;    
 
         case Syscalls::GETPID: 
-         //   cpu->ecx = InterruptHandler::sys_getpid();
+           // cpu->ecx = InterruptHandler::sys_getpid();
             break; 
 
         case Syscalls::WAITPID: 
             if(InterruptHandler::sys_waitpid(esp)) {
-                    printf("sys returned\n");
-                    return InterruptHandler::Reschedule(esp);
+                return InterruptHandler::Reschedule(esp);
             }
             break;    
-
-        case Syscalls::ADDTASK: 
-            //cpu->ecx = InterruptHandler::sys_addTask(cpu->ebx);
-            break;  
 
         default:
             break;

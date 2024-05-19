@@ -54,7 +54,9 @@ namespace myos
             common::uint32_t pid;
             common::uint32_t ppid;
             common::uint32_t waitpid;
-            ProcessState state; 
+            common::uint32_t waitnum;
+            ProcessState state;
+            bool waitparent; 
         public:
             Task();
             Task(GlobalDescriptorTable *gdt, void entrypoint());

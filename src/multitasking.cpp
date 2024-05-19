@@ -47,6 +47,8 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
 
     pid = 0;
     ppid = 0;
+    waitnum = 0;
+    waitparent = false;
     state = ProcessState::READY;
 }
 
@@ -137,6 +139,21 @@ bool TaskManager::ExitCurrentTask() {
     printfInt(currentTask);
     printf("\n");
     tasks[currentTask].state = ProcessState::TERMINATED;
+
+    // if it's parent waits its child to terminate
+    if (tasks[currentTask].waitparent) {
+        int ppid = tasks[currentTask].ppid;
+        if (tasks[ppid].state == BLOCKED) {
+            if (tasks[ppid].waitnum > 1) {
+                tasks[ppid].waitnum--;
+            } 
+            else {
+                tasks[ppid].waitnum--;
+                tasks[ppid].state = ProcessState::READY;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -150,19 +167,31 @@ int TaskManager::getIndex(common::uint32_t pid) {
 }
 
 bool TaskManager::WaitTask(common::uint32_t esp) {
-     printf("***WAITPID: ");
     CPUState* cpustate = (CPUState*)esp;
     common::uint32_t pid = cpustate->ebx;
 
+    printf("***WAITPID: waiting: ");
     printfInt(pid);
-    printf(", ");
+    printf(", who is waiting: ");
     printfInt(tasks[currentTask].pid);
-        printf("\n");
+    printf("\n"); 
+
+    if (tasks[pid].state == ProcessState::TERMINATED) {
+        printf("Already terminated\n");
+        return false;
+    }
+
+
+    tasks[pid].waitparent = true;
+    tasks[currentTask].state = ProcessState::BLOCKED;
+    tasks[currentTask].waitnum++;
+
+    return true;
+/* 
     if(tasks[currentTask].pid == pid || pid == 0) {
         return false;
     }
 
-    return true;
  printf("burda2\n");
     int index = getIndex(pid);
     if (index == -1) {
@@ -177,7 +206,7 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     tasks[currentTask].waitpid = pid;
     tasks[currentTask].state = ProcessState::BLOCKED;
     printf("burda5\n");
-    return true;
+    return true; */
 }
 
 

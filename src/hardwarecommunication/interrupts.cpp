@@ -42,9 +42,14 @@ InterruptHandler::~InterruptHandler()
         interruptManager->handlers[InterruptNumber] = 0;
 }
 
-uint32_t InterruptHandler::HandleInterrupt(uint32_t esp)
-{
+uint32_t InterruptHandler::HandleInterrupt( uint32_t esp)
+{   
     return esp;
+}
+
+uint32_t InterruptHandler::Reschedule(uint32_t esp)
+{   
+    return (uint32_t)interruptManager->taskManager->Schedule((CPUState*)esp);
 }
 
 InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
@@ -173,12 +178,6 @@ void InterruptManager::Deactivate()
         asm("cli");
     }
 }
-
-
-
-
-
-
 
 uint32_t InterruptManager::HandleInterrupt(uint8_t interrupt, uint32_t esp)
 {

@@ -176,7 +176,7 @@ void longTask() {
           
         }
     }
-  //  printf("LongExitted \n");
+    printf("LongExitted \n");
     //while(true);
 }
 
@@ -357,6 +357,7 @@ void childProcess() {
                 waitpid(pid);
                 waitpid(pid2);
                 waitpid(pid3);
+                printf("finish\n");
             } 
             else {
                 childProcess();
@@ -370,7 +371,6 @@ void childProcess() {
         childProcess();
     }
     while(true);
-    printf("exitting... ");
 }
 typedef void (*constructor)();
 extern "C" constructor start_ctors;

@@ -91,7 +91,7 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
 
         case Syscalls::EXIT: 
            if(InterruptHandler::sys_exit()) 
-              return InterruptHandler::HandleInterrupt(esp);
+              return InterruptHandler::Reschedule(esp);
             break;    
 
         case Syscalls::GETPID: 
@@ -99,8 +99,10 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break; 
 
         case Syscalls::WAITPID: 
-            if(InterruptHandler::sys_waitpid(esp)) 
-                    return InterruptHandler::HandleInterrupt(esp);
+            if(InterruptHandler::sys_waitpid(esp)) {
+                    printf("sys returned\n");
+                    return InterruptHandler::Reschedule(esp);
+            }
             break;    
 
         case Syscalls::ADDTASK: 

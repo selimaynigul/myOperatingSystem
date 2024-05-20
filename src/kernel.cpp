@@ -223,16 +223,18 @@ void binarySearch() {
 void collatzSequence() {
     printf("Collatz started...\n");
     int num = 2;
-    while (num < 100) {
-        int n = num;
-        while (n != 1) {
-            if (n % 2 == 0) {
-                n = n / 2;
-            } else {
-                n = 3 * n + 1;
+    for (int i = 0; i < 999900000; i++) {
+        while (num < 100000) {
+            int n = num;
+            while (n != 1) {
+                if (n % 2 == 0) {
+                    n = n / 2;
+                } else {
+                    n = 3 * n + 1;
+                }
             }
+            num++;
         }
-        num++;
     }
     printf("Collatz is finished.\n");
 }
@@ -287,8 +289,7 @@ void partA_process() {
 }
 
 
-unsigned int seed = 0; // Seed value for the random number generator
-
+unsigned int seed = 0; 
 int my_rand() {
     seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF;
     return (int)(seed >> 16);
@@ -328,7 +329,6 @@ void partB_first() {
     }
 
     printf("Process table after all childs end:\n");
-   // printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     taskManager.PrintProcessTable();
     printf("PART B the first strategy is successfully finished.\n");
 
@@ -346,7 +346,8 @@ void partB_second() {
     // Choose 2 programs randomly
     int chosen_programs[2];
     for (int i = 0; i < 2; ++i) {
-        int chosenProgramIndex = my_rand() % numPrograms;
+      //  int chosenProgramIndex = my_rand() % numPrograms;
+        int chosenProgramIndex = 0;
         chosen_programs[i] = chosenProgramIndex; // Store the index of the chosen program
     }
 
@@ -370,6 +371,9 @@ void partB_second() {
      for (int i = 0; i < 6; ++i) {
         waitpid(pids[i]);
     }
+
+    printf("Process table after all childs end:\n");
+    taskManager.PrintProcessTable();
 
     printf("\nPART B the second strategy is successfully finished.\n");
 }

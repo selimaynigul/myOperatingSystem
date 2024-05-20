@@ -75,7 +75,7 @@ namespace myos
             TaskManager(GlobalDescriptorTable* gdt); 
             ~TaskManager();
             bool InitTask(Task*task);
-            void CopyTask(Task *src, Task *dest);
+            void AddTask(Task *src, Task *dest);
             CPUState* ScheduleRobinRound(CPUState* cpustate, int interruptCount);
             CPUState* SchedulePreemptive(CPUState* cpustate, int interruptCount);
             CPUState* ScheduleDynamic(CPUState* cpustate, int interruptCount);

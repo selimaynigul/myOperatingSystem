@@ -27,7 +27,7 @@ namespace myos
                 common::uint32_t sys_fork(CPUState* cpustate);
                 bool sys_exit();
                 bool sys_waitpid(common::uint32_t pid);
-                int strategy = 3;
+                int strategy = 4;
 
         };
 
@@ -122,7 +122,7 @@ namespace myos
                 void Activate();
                 void Deactivate();
                 int interruptCount = 0;
-                int strategy = 3;
+                int strategy = 4;
         };
         
     }

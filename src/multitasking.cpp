@@ -101,18 +101,18 @@ void TaskManager::PrintProcessTable() {
 }
 
 bool TaskManager::InitTask(Task* task) {
-    CopyTask(task, &tasks[numTasks]); 
+    AddTask(task, &tasks[numTasks]); 
     task->priority = 1;
     numTasks++;
     return true;
 }
 
-void TaskManager::CopyTask(Task *src, Task *dest) {
-    dest->state = src->state;
+void TaskManager::AddTask(Task *src, Task *dest) {
     dest->pid = src->pid;
     dest->ppid = src->ppid;
     dest->waitpid = src->waitpid;
     dest->waitnum = src->waitnum;
+    dest->state = src->state;
 
     // Copy the stack
     for (int i = 0; i < sizeof(src->stack); ++i) {
@@ -162,7 +162,6 @@ common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 common::uint32_t TaskManager::ForkTaskThirdStrategy(CPUState* cpustate) {
 
     // fork for part b.3
-    // fork_2
 
     if (numTasks >= 256) 
         return -1; 
@@ -185,9 +184,7 @@ common::uint32_t TaskManager::ForkTaskThirdStrategy(CPUState* cpustate) {
     return tasks[numTasks - 1].pid;
 }
 common::uint32_t TaskManager::ForkTaskDynamic(CPUState* cpustate) {
-
     // fork for part b.4
-    // forkdynamic
 
     if (numTasks >= 256) 
         return -1; 
@@ -338,7 +335,6 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
 CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
 
     // schedule for part b.4
-    // schedule dynamic
 
     if (numTasks <= 0)
         return cpustate;
@@ -378,6 +374,11 @@ CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
     if (interruptCount % 5 == 0 && interruptCount < 100) {
         PrintProcessTable();
         my_sleep();
+    }
+
+    if (interruptCount == 100) {
+        printf("\nScheduling continues without printing process tables...\n");
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     }
 
     return tasks[currentTask].cpustate;

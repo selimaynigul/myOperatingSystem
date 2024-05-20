@@ -435,7 +435,6 @@ void partB_third() {
 }
 
  void initProcess() { 
-    
     switch (interrupts.strategy) {
         case 0:
             partA_process();

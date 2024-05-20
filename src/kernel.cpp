@@ -169,104 +169,120 @@ public:
 };
 
 void longTask() {
-    printf("LongEntered\n");
+    printf("Long task started...\n");
     int n = 100000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             result = i * j;
-          
         }
     }
-  //  printf("LongExitted \n");
-}
-void longTask2() {
-    printf("Long 2 Entered\n");
-    int n = 100000;
-    int result = 0;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            result = i * j;
-          
-        }
-    }
-  //  printf("LongExitted \n");
-}
-void longTask3() {
-   printf("Long 3 Entered\n");
-    int n = 100000;
-    int result = 0;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            result = i * j;
-          
-        }
-    }
-  //  printf("LongExitted \n");
+    printf("Long task is finished.\n");
 }
 
+void linearSearch() {
+    int arr[] = {1,2,3,4,5,6,7,8,9,10};
+    int size = 10;
+    int target = 6;
+    int result;
+    for (int i = 0; i < size; ++i) {
+        if (arr[i] == target) {
+            result = i;
+            return;
+        }
+    }
+    result = -1;
+}
 
-void collatzTask() {
-    int k = 0;
-    for (int i = 1; i <= 100; ++i) {
-       // printf("Output: ");
-       // printfInt(i);
-         k++;
-        while (i != 1) {
-          //  printfInt(i);
-          //  printf(",");
+void binarySearch() {
+    int arr[] = {1,2,3,4,5,6,7,8,9,10};
+    int size = 10;
+    int target = 6;
+
+    int left = 0;
+    int right = size - 1;
+
+    int result;
     
-            if (i % 2 == 0) {
-               i /= 2;
-            } else {
-               i = 3 *i + 1;
-            }
-        } 
-      //  printf("1");
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        
+        if (arr[mid] == target) {
+            result = mid; 
+            return;
+        }
+        if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1; 
+        }
     }
+    result = -1;
 }
 
-void childProcess() {
-   // printf("child\n");
-   // collatzTask();
-    longTask();
-    exit();
+void collatzSequence() {
+    printf("Collatz started...\n");
+    int num = 2;
+    while (num < 100) {
+        int n = num;
+        while (n != 1) {
+            if (n % 2 == 0) {
+                n = n / 2;
+            } else {
+                n = 3 * n + 1;
+            }
+        }
+        num++;
+    }
+    printf("Collatz is finished.\n");
 }
 
- void partA_process() {   
+void my_sleep2() {
+    int n = 100000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) 
+        for (int j = 0; j < n; ++j) 
+            result = i * j; 
+}
 
-    printf("part A running\n");   
+void partA_process() {   
+    printf("PART A is running\n"); 
 
-    int pid;
-    int pid2;
-    int pid3;
+    int pid, pid2, pid3;
 
-    int returnedPid = fork(&pid);
-   // printf("forked\n");
+    int returnedPid = fork(&pid); // first fork
 
     if (returnedPid == pid) {
-        returnedPid = fork(&pid2);
+        returnedPid = fork(&pid2); // second fork
         if (returnedPid == pid2) {
-            returnedPid = fork(&pid3);
-            if (returnedPid == pid3) {
+            returnedPid = fork(&pid3); // third fork
+            if (returnedPid == pid3) {   // PARENT PROCESS
+                printf("All child processes are forked successfully.\n");
+                printf("\nProcess table after forked all childs:\n");
+                taskManager.PrintProcessTable();
                 waitpid(pid);
                 waitpid(pid2);
                 waitpid(pid3);
-              //  taskManager.PrintProcessTable();
-                printf("finished\n");
+                printf("\nProcess table after all childs end:\n");
+                taskManager.PrintProcessTable();
+                printf("\nPART A is successfully completed.\n\n");
+                exit();
             } 
-            else {
+            else { // FIRST CHILD
+                collatzSequence();
                 longTask();
                 exit();
             }
         } 
-        else {
-            longTask2();
+        else { // SECOND CHILD
+            collatzSequence();
+            longTask();
             exit();
         } 
     } 
-    else {
-        longTask3();
+    else { // THIRD CHILD
+        collatzSequence();
+        longTask();
         exit();
     }
 }
@@ -280,10 +296,10 @@ int my_rand() {
 }
 
 void partB_first() {
-    printf("part B.1 running\n");
+    printf("PART B the first strategy is running.\n");
 
     // Array of function pointers to the available programs
-    void (*programs[])() = {longTask, longTask2, longTask3}; // Replace with actual program function names
+    void (*programs[])() = {longTask, collatzSequence, binarySearch, linearSearch};
     int numPrograms = sizeof(programs) / sizeof(programs[0]);
 
     // Randomly choose one of the programs
@@ -305,34 +321,18 @@ void partB_first() {
 
     printf("10 processes started\n");
 
-    // Infinite loop to wait for all processes to terminate
-  /*   while (true) {
-        bool allTerminated = true;
-        for (int i = 0; i < 10; ++i) {
-            int status;
-            int result = waitpid(pids[i]);
-            if (result == 0) {
-                allTerminated = false; // Process has not terminated yet
-            }
-        }
-
-        if (allTerminated) {
-            printf("All processes finished\n");
-            break;
-        }
-    } */
     for (int i = 0; i < 10; ++i) {
         waitpid(pids[i]);
     }
-    printf("part b.1 finished\n");
+
+    printf("\nPART B the first strategy is successfully finished.\n");
 }
 
 
 void partB_second() {
-    printf("part b.2 running\n");
-  
-// Array of functions representing the programs
-    void (*programs[])() = {longTask, longTask2, longTask3, longTask};
+    printf("PART B the second strategy is running.\n");
+ 
+    void (*programs[])() = {longTask, collatzSequence, binarySearch, linearSearch};
     int numPrograms = sizeof(programs) / sizeof(programs[0]);
     int pids[6];
 
@@ -364,25 +364,25 @@ void partB_second() {
         waitpid(pids[i]);
     }
 
-    printf("Part b.2 finished\n");
+    printf("\nPART B the second strategy is successfully finished.\n");
 }
 
 
 void partB_third() {
-    printf("part B.3 running\n");   
+    printf("PART B the preemptive strategy is running\n");   
 
     int pid;
     int pid2;
     int pid3;
     int pid4;
 
-       // taskManager.PrintProcessTable();
     int returnedPid = fork(&pid);
+
     if (returnedPid == pid) {
        // taskManager.PrintProcessTable();
     }
     else {
-        longTask();
+        collatzSequence();
         exit();
     }
 
@@ -398,20 +398,25 @@ void partB_third() {
     if (returnedPid == pid3) {
     }
     else {
-        longTask();
+        binarySearch();
+        exit();
+    }
+
+    returnedPid = fork(&pid4);
+    if (returnedPid == pid4) {
+    }
+    else {
+        linearSearch();
         exit();
     }
 
     waitpid(pid);
     waitpid(pid2);
     waitpid(pid3);
-   // exit();
-    //taskManager.PrintProcessTable();
+    waitpid(pid4);
 
-    printf("finished\n");
+    printf("PART B dynamic priority strategy is successfully finished.\n");
 }
-
-
 
  void initProcess() { 
     
@@ -453,8 +458,7 @@ extern "C" void callConstructors()
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
 {
-    printf("Hello World!\n");
-    
+    printf("Hello World!\n\n");
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);

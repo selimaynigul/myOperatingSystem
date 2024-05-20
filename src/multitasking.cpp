@@ -7,6 +7,7 @@ using namespace myos::common;
 void printf(char*);
 void printfInt(int);
 
+// default constructor
 Task::Task()
 {
     cpustate = nullptr;
@@ -18,33 +19,18 @@ Task::Task()
     state = ProcessState::READY;
 }
 
-Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
-{
-
+Task::Task(GlobalDescriptorTable *gdt, void entrypoint()) {
     cpustate = (CPUState*)(stack + 4096 - sizeof(CPUState));
-    
+
     cpustate->eax = 0;
     cpustate->ebx = 0;
     cpustate->ecx = 0;
     cpustate->edx = 0;
-
     cpustate->esi = 0;
     cpustate->edi = 0;
     cpustate->ebp = 0;
-    
-    /*
-    cpustate->gs = 0;
-    cpustate->fs = 0;
-    cpustate->es = 0;
-    cpustate->ds = 0;
-    */
-    
-    // cpustate->error = 0;    
-   
-    // cpustate->esp = ;
     cpustate->eip = (uint32_t)entrypoint;
     cpustate->cs = gdt->CodeSegmentSelector();
-    // cpustate->ss = ;
     cpustate->eflags = 0x202;
 
     pid = 0;
@@ -54,23 +40,15 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
     state = ProcessState::READY;
 }
 
-Task::~Task()
-{
-}
+Task::~Task() {}
 
-
-
-TaskManager::TaskManager(GlobalDescriptorTable* gdt)
-{
+TaskManager::TaskManager(GlobalDescriptorTable* gdt) {
     this->gdt = gdt;
     numTasks = 0;
     currentTask = -1;
 }
 
-
-TaskManager::~TaskManager()
-{
-}
+TaskManager::~TaskManager() {}
 
 void TaskManager::PrintProcessTable() {
     printf("\n");
@@ -110,17 +88,10 @@ void TaskManager::PrintProcessTable() {
     printf("\n");
 }
 
-bool TaskManager::InitTask(Task* task)
-{
-    if(numTasks >= 256)
-        return false;
-
-   // task->state = ProcessState::READY;  
+bool TaskManager::InitTask(Task* task) {
     CopyTask(task, &tasks[numTasks]); 
     task->priority = 1;
-
     numTasks++;
-
     return true;
 }
 
@@ -227,9 +198,9 @@ common::uint32_t TaskManager::ForkTaskDynamic(CPUState* cpustate) {
 }
 
 bool TaskManager::ExitCurrentTask() {
-     printf("EXITTED FROM PID: ");
+     printf("Process with PID ");
     printfInt(currentTask);
-    printf("\n");  
+    printf(" exited.\n");  
     tasks[currentTask].state = ProcessState::TERMINATED;
 
     // if it's parent waits its child to terminate adjust necessary parts in the parent
@@ -252,18 +223,14 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     CPUState* cpustate = (CPUState*)esp;
     common::uint32_t pid = cpustate->ebx;
 
-    printf("***WAITPID: waiting: ");
-    printfInt(pid);
-    printf(", who is waiting: ");
+    printf("PID ");
     printfInt(tasks[currentTask].pid);
-    printf("\n");    
+    printf(" is waiting for PID ");
+    printfInt(pid);
+    printf("...\n");    
 
     // if the waited process already terminated return false without waiting
     if (tasks[pid].state == ProcessState::TERMINATED || pid == tasks[currentTask].pid) {
-      /*   printf("Already terminated: ");
-        printfInt(pid);
-        printf("\n");
-         */
         tasks[currentTask].cpustate->ecx = 0;
         return false;
     }
@@ -271,15 +238,13 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     tasks[pid].waitparent = true;
     tasks[currentTask].state = ProcessState::BLOCKED;
     tasks[currentTask].waitnum++;
-    
     tasks[currentTask].cpustate->ecx = 1;
+
     return true;
 }
 
+//schedule for part a, b.1, b.2
 CPUState* TaskManager::ScheduleRobinRound(CPUState* cpustate, int interruptCount) {
-
-    //schedule for part a, b.1, b.2
-
     if (numTasks <= 0)
         return cpustate;
 
@@ -351,7 +316,13 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
     return tasks[currentTask].cpustate;
 }
     
-
+void my_sleep() {
+    int n = 30000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) 
+        for (int j = 0; j < n; ++j) 
+            result = i * j; 
+}
 
 CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
 
@@ -370,8 +341,7 @@ CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
         }
     }
 
-
-   // save current cputstate of the current task
+    // save current cputstate of the current task
     if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
         tasks[currentTask].cpustate = cpustate;
         tasks[currentTask].state = ProcessState::READY;
@@ -391,24 +361,14 @@ CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
         return cpustate;
     }
 
-  
-
-
     currentTask = highestPriorityTask;
     tasks[currentTask].state = ProcessState::RUNNING;
 
-      if (interruptCount % 5 == 0 && interruptCount < 100) {
+    if (interruptCount % 5 == 0 && interruptCount < 100) {
         PrintProcessTable();
-        int n = 30000;
-        int result = 0;
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                result = i * j;
-            
-            }
-        }
-    
+        my_sleep();
     }
+
     return tasks[currentTask].cpustate;
 }
     

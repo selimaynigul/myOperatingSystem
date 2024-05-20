@@ -10,26 +10,16 @@ namespace myos
     namespace hardwarecommunication {
         class InterruptHandler;
     }
-
-    struct CPUState
-    {
+    
+    struct CPUState {
         common::uint32_t eax;
         common::uint32_t ebx;
         common::uint32_t ecx;
         common::uint32_t edx;
-
         common::uint32_t esi;
         common::uint32_t edi;
         common::uint32_t ebp;
-
-        /*
-        common::uint32_t gs;
-        common::uint32_t fs;
-        common::uint32_t es;
-        common::uint32_t ds;
-        */
         common::uint32_t error;
-
         common::uint32_t eip;
         common::uint32_t cs;
         common::uint32_t eflags;
@@ -44,8 +34,8 @@ namespace myos
         TERMINATED,
     } ProcessState;
 
-    class Task
-    {
+    class Task {
+
         friend class TaskManager;
         private:
             common::uint8_t stack[4096]; // 4 KiB
@@ -63,15 +53,15 @@ namespace myos
             ~Task();
     };
     
-    class TaskManager
-    {
+    class TaskManager {
+
         friend class hardwarecommunication::InterruptHandler;
         private:
             Task tasks[256];
             int numTasks;
             int currentTask;
             GlobalDescriptorTable* gdt;
-       
+
         protected: 
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t ForkTask(CPUState* cpustate);
@@ -80,6 +70,7 @@ namespace myos
             bool WaitTask(common::uint32_t pid);
             bool ExitCurrentTask();
             common::uint32_t getpid();
+
         public:
             TaskManager(GlobalDescriptorTable* gdt); 
             ~TaskManager();
@@ -89,11 +80,7 @@ namespace myos
             CPUState* SchedulePreemptive(CPUState* cpustate, int interruptCount);
             CPUState* ScheduleDynamic(CPUState* cpustate, int interruptCount);
             void PrintProcessTable();
-    };
-    
-    
-    
+    }; 
 }
-
 
 #endif

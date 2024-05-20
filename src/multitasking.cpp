@@ -328,7 +328,7 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
 
     int highestPriorityTask = -1;
     for (int i = 0; i < numTasks; ++i) {
-        if (tasks[i].state == ProcessState::READY) {
+        if (tasks[i].state == ProcessState::READY || tasks[i].state == ProcessState::RUNNING) {
             if (highestPriorityTask == -1 || tasks[i].priority > tasks[highestPriorityTask].priority) {
                 highestPriorityTask = i;
             }

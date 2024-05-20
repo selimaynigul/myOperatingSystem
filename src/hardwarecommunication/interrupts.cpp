@@ -41,7 +41,7 @@ uint32_t InterruptHandler::HandleInterrupt( uint32_t esp)
 
 uint32_t InterruptHandler::Reschedule(uint32_t esp)
 {   
-    return (uint32_t)interruptManager->taskManager->Schedule((CPUState*)esp);
+    return (uint32_t)interruptManager->taskManager->Schedule((CPUState*)esp, interruptManager->interruptCount);
 }
 
 InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
@@ -193,7 +193,8 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     
     if(interrupt == hardwareInterruptOffset)
     {
-        esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
+        interruptCount++;
+        esp = (uint32_t)taskManager->Schedule((CPUState*)esp, interruptCount);
     }
 
     // hardware interrupts must be acknowledged

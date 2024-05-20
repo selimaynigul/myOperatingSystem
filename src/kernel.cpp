@@ -24,7 +24,9 @@ using namespace myos::gui;
 
 GlobalDescriptorTable gdt;
 TaskManager taskManager(&gdt);
-int strategy = 2;
+InterruptManager interrupts(0x20, &gdt, &taskManager);
+SyscallHandler syscalls(&interrupts, 0x80);
+int strategy = 3;
 
 // #define GRAPHICSMODE
 
@@ -248,10 +250,10 @@ void childProcess() {
         if (returnedPid == pid2) {
             returnedPid = fork(&pid3);
             if (returnedPid == pid3) {
-                printf("forks successful\n");
                 waitpid(pid);
                 waitpid(pid2);
                 waitpid(pid3);
+              //  taskManager.PrintProcessTable();
                 printf("finished\n");
             } 
             else {
@@ -296,14 +298,10 @@ void partB_first() {
         int returnedPid = fork(&pid);
         if (returnedPid == pid) {
             pids[i] = pid; // Store the PID of the child process
-        } else if (returnedPid == 0) {
-            // Child process: run the chosen program
-            chosenProgram();
-            exit(); // Exit after the program finishes
         } else {
-            // Error handling
-            printf("Fork failed\n");
-        }
+            chosenProgram();
+            exit(); 
+        } 
     }
 
     printf("10 processes started\n");
@@ -374,12 +372,53 @@ void partB_second() {
 void partB_third() {
     printf("part B.3 running\n");   
 
+    int pid;
+    int pid2;
+    int pid3;
+    int pid4;
+
+       // taskManager.PrintProcessTable();
+    int returnedPid = fork(&pid);
+    if (returnedPid == pid) {
+       // taskManager.PrintProcessTable();
+    }
+    else {
+        longTask();
+        exit();
+    }
+
+   /*  while(interrupts.interruptCount < 5);
+        printf("here\n"); */
+
+    returnedPid = fork(&pid2);
+    if (returnedPid == pid2) {
+    }
+    else {
+        longTask();
+        exit();
+    }
+
+    returnedPid = fork(&pid3);
+    if (returnedPid == pid3) {
+    }
+    else {
+        longTask();
+        exit();
+    }
+
+    waitpid(pid);
+    waitpid(pid2);
+    waitpid(pid3);
+   // exit();
+    //taskManager.PrintProcessTable();
+
+    printf("finished\n");
 }
 
 
 
  void initProcess() { 
-
+    
     switch (strategy) {
         case 0:
             partA_process();
@@ -424,8 +463,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     Task initTask(&gdt, initProcess);
     taskManager.InitTask(&initTask);
     
-    InterruptManager interrupts(0x20, &gdt, &taskManager);
-    SyscallHandler syscalls(&interrupts, 0x80);
+ 
     /*
     printf("Initializing Hardware, Stage 1\n");
     

@@ -121,6 +121,7 @@ namespace myos
                 myos::common::uint16_t HardwareInterruptOffset();
                 void Activate();
                 void Deactivate();
+                int interruptCount = 0;
         };
         
     }

@@ -40,7 +40,7 @@ namespace myos
         READY,
         RUNNING,
         BLOCKED,
-        TERMINATED
+        TERMINATED,
     } ProcessState;
 
     class Task
@@ -75,6 +75,7 @@ namespace myos
             common::uint32_t AddTask(void entrypoint());
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t ForkTask(CPUState* cpustate);
+            common::uint32_t ForkTask_2(CPUState* cpustate);
             bool WaitTask(common::uint32_t pid);
             bool ExitCurrentTask();
             common::uint32_t getpid();
@@ -83,8 +84,8 @@ namespace myos
             ~TaskManager();
             bool InitTask(Task*task);
             void CopyTask(Task *src, Task *dest);
-            CPUState* Schedule(CPUState* cpustate);
-            CPUState* SchedulePriority(CPUState* cpustate);
+            CPUState* Schedule(CPUState* cpustate, int interruptCount);
+            CPUState* SchedulePriority(CPUState* cpustate, int interruptCount);
             void PrintProcessTable();
     };
     

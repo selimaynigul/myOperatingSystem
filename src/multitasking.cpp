@@ -7,6 +7,14 @@ using namespace myos::common;
 void printf(char*);
 void printfInt(int);
 
+void my_sleep() {
+    int n = 40000;
+    int result = 0;
+    for (int i = 0; i < n; ++i) 
+        for (int j = 0; j < n; ++j) 
+            result = i * j; 
+}
+
 // default constructor
 Task::Task()
 {
@@ -58,7 +66,11 @@ void TaskManager::PrintProcessTable() {
     for (int i = 0; i < numTasks; ++i) {
         printf(" ");
         printfInt(tasks[i].pid);
-        printf("   | ");
+        if(tasks[i].pid < 10) {
+            printf("   | ");
+        } else {
+            printf("  | ");
+        }
         printfInt(tasks[i].ppid);
         printf("    | ");
         printfInt(tasks[i].waitnum);
@@ -70,16 +82,16 @@ void TaskManager::PrintProcessTable() {
             printf("false");
         }
         printf("      | ");
-        if (tasks[i].state == ProcessState::READY) {
-            printf("READY     ");
+        if (tasks[i].state == ProcessState::RUNNING || i == currentTask) {
+            printf("RUNNING   ");
         }
         else if (tasks[i].state == ProcessState::BLOCKED) {
             printf("BLOCKED   ");
         }
         else if (tasks[i].state == ProcessState::TERMINATED) {
             printf("TERMINATED");
-        } else {
-            printf("RUNNING   ");
+        } else if (tasks[i].state == ProcessState::READY) {
+            printf("READY     ");
         }
         printf("| ");
         printfInt(tasks[i].priority);
@@ -252,11 +264,31 @@ CPUState* TaskManager::ScheduleRobinRound(CPUState* cpustate, int interruptCount
         tasks[currentTask].cpustate = cpustate;
 
     int nextTask = currentTask;
+
+    
     do {
         nextTask = (nextTask + 1) % numTasks;
     } while (tasks[nextTask].state != ProcessState::READY);
 
+  /*   if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
+        tasks[currentTask].state = ProcessState::READY;
+    }
+ */
     currentTask = nextTask;
+   /*   if (currentTask >= 0 && tasks[currentTask].state == ProcessState::READY) {
+        tasks[currentTask].state = ProcessState::RUNNING;
+    }
+ */
+    // print process table for given interval of interrupts
+    if (interruptCount > 10 && interruptCount < 20) {
+        PrintProcessTable();
+        my_sleep();
+    }
+
+    if (interruptCount == 20) {
+        printf("\nScheduling continues without printing process tables...\n");
+    }
+
     return tasks[currentTask].cpustate;
 }
 
@@ -314,14 +346,6 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
     currentTask = highestPriorityTask;
     tasks[currentTask].state = ProcessState::RUNNING;
     return tasks[currentTask].cpustate;
-}
-    
-void my_sleep() {
-    int n = 30000;
-    int result = 0;
-    for (int i = 0; i < n; ++i) 
-        for (int j = 0; j < n; ++j) 
-            result = i * j; 
 }
 
 CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {

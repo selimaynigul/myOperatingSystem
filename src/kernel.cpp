@@ -170,7 +170,7 @@ public:
 
 void longTask() {
     printf("Long task started...\n");
-    int n = 100000;
+    int n = 50000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -245,10 +245,11 @@ void my_sleep2() {
             result = i * j; 
 }
 
+// parent prcoess creates three child process using nested forks
 void partA_process() {   
     printf("PART A is running\n"); 
 
-    int pid, pid2, pid3;
+    int pid, pid2, pid3; // child pids
 
     int returnedPid = fork(&pid); // first fork
 
@@ -258,12 +259,10 @@ void partA_process() {
             returnedPid = fork(&pid3); // third fork
             if (returnedPid == pid3) {   // PARENT PROCESS
                 printf("All child processes are forked successfully.\n");
-                printf("\nProcess table after forked all childs:\n");
-                taskManager.PrintProcessTable();
                 waitpid(pid);
                 waitpid(pid2);
                 waitpid(pid3);
-                printf("\nProcess table after all childs end:\n");
+                printf("\n\n\n\n\n\nProcess table after all childs end:\n");
                 taskManager.PrintProcessTable();
                 printf("\nPART A is successfully completed.\n\n");
                 exit();
@@ -304,28 +303,36 @@ void partB_first() {
 
     // Randomly choose one of the programs
     int chosenProgramIndex = my_rand() % numPrograms;
+    chosenProgramIndex = 0;
     void (*chosenProgram)() = programs[chosenProgramIndex];
 
-    int pids[10];
+    int childPids[10];
+    int pid;
 
     for (int i = 0; i < 10; ++i) {
-        int pid;
         int returnedPid = fork(&pid);
-        if (returnedPid == pid) {
-            pids[i] = pid; // Store the PID of the child process
-        } else {
+        if (returnedPid == pid) { // PARENT
+            // Store the PID of the child process 
+            childPids[i] = pid; 
+        } 
+        else { // CHILD
             chosenProgram();
             exit(); 
         } 
     }
+    printf("10 child processes are started running...\n");
 
-    printf("10 processes started\n");
-
+    // wait all child processes to finish 
     for (int i = 0; i < 10; ++i) {
-        waitpid(pids[i]);
+        waitpid(childPids[i]);
     }
 
-    printf("\nPART B the first strategy is successfully finished.\n");
+    printf("\nProcess table after all childs end:\n");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n");
+    taskManager.PrintProcessTable();
+    printf("PART B the first strategy is successfully finished.\n");
+
+    exit();
 }
 
 

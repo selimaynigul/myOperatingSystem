@@ -8,7 +8,7 @@ void printf(char*);
 void printfInt(int);
 
 void my_sleep() {
-    int n = 40000;
+    int n = 50000;
     int result = 0;
     for (int i = 0; i < n; ++i) 
         for (int j = 0; j < n; ++j) 
@@ -265,26 +265,17 @@ CPUState* TaskManager::ScheduleRobinRound(CPUState* cpustate, int interruptCount
 
     int nextTask = currentTask;
 
-    
     do {
         nextTask = (nextTask + 1) % numTasks;
     } while (tasks[nextTask].state != ProcessState::READY);
 
-  /*   if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
-        tasks[currentTask].state = ProcessState::READY;
-    }
- */
     currentTask = nextTask;
-   /*   if (currentTask >= 0 && tasks[currentTask].state == ProcessState::READY) {
-        tasks[currentTask].state = ProcessState::RUNNING;
-    }
- */
+ 
     // print process table for given interval of interrupts
     if (interruptCount > 10 && interruptCount < 20) {
         PrintProcessTable();
         my_sleep();
     }
-
     if (interruptCount == 20) {
         printf("\nScheduling continues without printing process tables...\n");
     }

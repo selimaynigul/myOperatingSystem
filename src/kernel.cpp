@@ -327,8 +327,8 @@ void partB_first() {
         waitpid(childPids[i]);
     }
 
-    printf("\nProcess table after all childs end:\n");
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n");
+    printf("Process table after all childs end:\n");
+   // printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     taskManager.PrintProcessTable();
     printf("PART B the first strategy is successfully finished.\n");
 

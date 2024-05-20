@@ -4,6 +4,7 @@
 
 #include <common/types.h>
 #include <gdt.h>
+
 namespace myos
 {
     namespace hardwarecommunication {
@@ -72,10 +73,10 @@ namespace myos
             GlobalDescriptorTable* gdt;
        
         protected: 
-            common::uint32_t AddTask(void entrypoint());
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t ForkTask(CPUState* cpustate);
-            common::uint32_t ForkTask_2(CPUState* cpustate);
+            common::uint32_t ForkTaskThirdStrategy(CPUState* cpustate);
+            common::uint32_t ForkTaskDynamic(CPUState* cpustate);
             bool WaitTask(common::uint32_t pid);
             bool ExitCurrentTask();
             common::uint32_t getpid();
@@ -84,8 +85,9 @@ namespace myos
             ~TaskManager();
             bool InitTask(Task*task);
             void CopyTask(Task *src, Task *dest);
-            CPUState* Schedule(CPUState* cpustate, int interruptCount);
-            CPUState* SchedulePriority(CPUState* cpustate, int interruptCount);
+            CPUState* ScheduleRobinRound(CPUState* cpustate, int interruptCount);
+            CPUState* SchedulePreemptive(CPUState* cpustate, int interruptCount);
+            CPUState* ScheduleDynamic(CPUState* cpustate, int interruptCount);
             void PrintProcessTable();
     };
     

@@ -152,8 +152,11 @@ common::uint32_t TaskManager::getpid() {
     return tasks[currentTask].pid;
 }
 
-common::uint32_t TaskManager::ForkTask_2(CPUState* cpustate) {
+common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 
+    // fork for part a, b1, b2
+    // fork
+    
     if (numTasks >= 256) 
         return -1; 
     
@@ -173,13 +176,40 @@ common::uint32_t TaskManager::ForkTask_2(CPUState* cpustate) {
     return tasks[numTasks - 1].pid;
 }
 
-common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
+common::uint32_t TaskManager::ForkTaskThirdStrategy(CPUState* cpustate) {
+
+    // fork for part b.3
+    // fork_2
 
     if (numTasks >= 256) 
         return -1; 
     
     tasks[numTasks].state = (numTasks == 1) ? ProcessState::READY : ProcessState::BLOCKED;
     tasks[numTasks].priority = (numTasks == 1) ? 0 : 1;
+
+    tasks[numTasks].pid = numTasks;
+    tasks[numTasks].ppid = getpid();
+
+    common::uint32_t currentTaskOffset = (((common::uint32_t)cpustate - (common::uint32_t) tasks[currentTask].stack));
+    tasks[numTasks].cpustate = (CPUState*)(((common::uint32_t) tasks[numTasks].stack) + currentTaskOffset);
+
+    for (int i = 0; i < sizeof(tasks[currentTask].stack); i++)
+        tasks[numTasks].stack[i] = tasks[currentTask].stack[i];
+
+    tasks[numTasks].cpustate->ecx = 0;
+    numTasks++;
+
+    return tasks[numTasks - 1].pid;
+}
+common::uint32_t TaskManager::ForkTaskDynamic(CPUState* cpustate) {
+
+    // fork for part b.4
+    // forkdynamic
+
+    if (numTasks >= 256) 
+        return -1; 
+    
+    tasks[numTasks].priority = (numTasks == 1) ? 0 : 4;
 
     tasks[numTasks].pid = numTasks;
     tasks[numTasks].ppid = getpid();
@@ -230,10 +260,10 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
 
     // if the waited process already terminated return false without waiting
     if (tasks[pid].state == ProcessState::TERMINATED || pid == tasks[currentTask].pid) {
-        printf("Already terminated: ");
+      /*   printf("Already terminated: ");
         printfInt(pid);
         printf("\n");
-        
+         */
         tasks[currentTask].cpustate->ecx = 0;
         return false;
     }
@@ -246,15 +276,10 @@ bool TaskManager::WaitTask(common::uint32_t esp) {
     return true;
 }
 
-CPUState* TaskManager::SchedulePriority(CPUState* cpustate, int interruptCount) {
+CPUState* TaskManager::ScheduleRobinRound(CPUState* cpustate, int interruptCount) {
 
-    /* if (interruptCount <= 5) {
-        printf("interruptCount: ");
-        printfInt(interruptCount);
-        printf("cur: ");
-        printfInt(currentTask);
-        printf(" | "); 
-    } */
+    //schedule for part a, b.1, b.2
+
     if (numTasks <= 0)
         return cpustate;
 
@@ -266,28 +291,15 @@ CPUState* TaskManager::SchedulePriority(CPUState* cpustate, int interruptCount) 
         nextTask = (nextTask + 1) % numTasks;
     } while (tasks[nextTask].state != ProcessState::READY);
 
-   /*   // Update the state of the previously running task to "ready"
-    if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
-        tasks[currentTask].state = ProcessState::READY;
-    }
- */
- /*     // Update the state of the next task to "running"
-    tasks[nextTask].state = ProcessState::RUNNING;
- */
     currentTask = nextTask;
     return tasks[currentTask].cpustate;
 }
 
-CPUState* TaskManager::Schedule(CPUState* cpustate, int interruptCount) {
+CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount) {
 
-   /*  if (interruptCount <= 5) {
-        printf("interruptCount: ");
-        printfInt(interruptCount);
-        printf("cur: ");
-        printfInt(currentTask);
-        printf(" | "); 
-    }
- */
+    // schedule for part b.3
+    // schedule priority
+
     if (numTasks <= 0)
         return cpustate;
 
@@ -302,6 +314,10 @@ CPUState* TaskManager::Schedule(CPUState* cpustate, int interruptCount) {
         }
     }   
 
+  /*   if (tasks[currentTask].state = ProcessState::RUNNING) {
+        tasks[currentTask].state = ProcessState::READY;
+    }
+ */
     if (interruptCount < 15) {
         printf("current task: ");
         printfInt(tasks[currentTask].pid);
@@ -332,6 +348,67 @@ CPUState* TaskManager::Schedule(CPUState* cpustate, int interruptCount) {
 
     currentTask = highestPriorityTask;
     tasks[currentTask].state = ProcessState::RUNNING;
+    return tasks[currentTask].cpustate;
+}
+    
+
+
+CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
+
+    // schedule for part b.4
+    // schedule dynamic
+
+    if (numTasks <= 0)
+        return cpustate;
+
+    if (currentTask >= 0)
+        tasks[currentTask].cpustate = cpustate;
+
+    if (interruptCount % 5 == 0) {
+        if (tasks[1].state != ProcessState::TERMINATED) {
+            tasks[1].priority++;
+        }
+    }
+
+
+   // save current cputstate of the current task
+    if (currentTask >= 0 && tasks[currentTask].state == ProcessState::RUNNING) {
+        tasks[currentTask].cpustate = cpustate;
+        tasks[currentTask].state = ProcessState::READY;
+    }
+ 
+    int highestPriorityTask = -1;
+    for (int i = 0; i < numTasks; ++i) {
+        if (tasks[i].state == ProcessState::READY) {
+            if (highestPriorityTask == -1 || tasks[i].priority > tasks[highestPriorityTask].priority) {
+                highestPriorityTask = i;
+            }
+        }
+    }
+
+    if (highestPriorityTask == -1) {
+        // No READY task found, return the current CPU state
+        return cpustate;
+    }
+
+  
+
+
+    currentTask = highestPriorityTask;
+    tasks[currentTask].state = ProcessState::RUNNING;
+
+      if (interruptCount % 5 == 0 && interruptCount < 100) {
+        PrintProcessTable();
+        int n = 30000;
+        int result = 0;
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                result = i * j;
+            
+            }
+        }
+    
+    }
     return tasks[currentTask].cpustate;
 }
     

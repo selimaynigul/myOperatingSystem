@@ -26,7 +26,6 @@ GlobalDescriptorTable gdt;
 TaskManager taskManager(&gdt);
 InterruptManager interrupts(0x20, &gdt, &taskManager);
 SyscallHandler syscalls(&interrupts, 0x80);
-int strategy = 3;
 
 // #define GRAPHICSMODE
 
@@ -387,9 +386,6 @@ void partB_third() {
         exit();
     }
 
-   /*  while(interrupts.interruptCount < 5);
-        printf("here\n"); */
-
     returnedPid = fork(&pid2);
     if (returnedPid == pid2) {
     }
@@ -419,7 +415,7 @@ void partB_third() {
 
  void initProcess() { 
     
-    switch (strategy) {
+    switch (interrupts.strategy) {
         case 0:
             partA_process();
             break;
@@ -433,6 +429,10 @@ void partB_third() {
             break;
         
         case 3:
+            partB_third();
+            break;
+        
+        case 4:
             partB_third();
             break;
         

@@ -9,7 +9,15 @@ void printf(char* str);
 void printfHex(uint8_t);
 
 common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
-    return interruptManager->taskManager->ForkTask(cpustate);
+    if (strategy < 3) {
+        return interruptManager->taskManager->ForkTask(cpustate);
+    }
+    else if (strategy == 3) {
+        return interruptManager->taskManager->ForkTaskThirdStrategy(cpustate);
+    }
+    else {
+        return interruptManager->taskManager->ForkTaskDynamic(cpustate);
+    }
 }
 
 bool InterruptHandler::sys_exit() {
@@ -41,7 +49,15 @@ uint32_t InterruptHandler::HandleInterrupt( uint32_t esp)
 
 uint32_t InterruptHandler::Reschedule(uint32_t esp)
 {   
-    return (uint32_t)interruptManager->taskManager->Schedule((CPUState*)esp, interruptManager->interruptCount);
+    if (strategy < 3) {
+        return (uint32_t)interruptManager->taskManager->ScheduleRobinRound((CPUState*)esp, interruptManager->interruptCount);
+    }
+    else if (strategy == 3) {
+        return (uint32_t)interruptManager->taskManager->SchedulePreemptive((CPUState*)esp, interruptManager->interruptCount);
+    }
+    else {
+        return (uint32_t)interruptManager->taskManager->ScheduleDynamic((CPUState*)esp, interruptManager->interruptCount);
+    }
 }
 
 InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
@@ -194,7 +210,16 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     if(interrupt == hardwareInterruptOffset)
     {
         interruptCount++;
-        esp = (uint32_t)taskManager->Schedule((CPUState*)esp, interruptCount);
+
+        if (strategy < 3) {
+            esp = (uint32_t)taskManager->ScheduleRobinRound((CPUState*)esp, interruptCount);
+        }
+        else if (strategy == 3) {
+            esp = (uint32_t)taskManager->SchedulePreemptive((CPUState*)esp, interruptCount);
+        }
+        else {
+            esp = (uint32_t)taskManager->ScheduleDynamic((CPUState*)esp, interruptCount);
+        }
     }
 
     // hardware interrupts must be acknowledged

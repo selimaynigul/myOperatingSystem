@@ -170,7 +170,7 @@ public:
 
 void longTask() {
     printf("Long task started...\n");
-    int n = 50000;
+    int n = 60000;
     int result = 0;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -390,7 +390,7 @@ void partB_third() {
     int returnedPid = fork(&pid);
 
     if (returnedPid == pid) {
-       // taskManager.PrintProcessTable();
+        // parent process
     }
     else {
         collatzSequence();
@@ -409,7 +409,8 @@ void partB_third() {
     if (returnedPid == pid3) {
     }
     else {
-        binarySearch();
+        //binarySearch();
+        longTask();
         exit();
     }
 
@@ -417,7 +418,8 @@ void partB_third() {
     if (returnedPid == pid4) {
     }
     else {
-        linearSearch();
+        //linearSearch();
+        longTask();
         exit();
     }
 
@@ -426,7 +428,10 @@ void partB_third() {
     waitpid(pid3);
     waitpid(pid4);
 
-    printf("PART B dynamic priority strategy is successfully finished.\n");
+    printf("Process table after all childs end:\n");
+    taskManager.PrintProcessTable();
+
+    printf("PART B preemptive priority strategy is successfully finished.\n");
 }
 
  void initProcess() { 
@@ -477,93 +482,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
 
     Task initTask(&gdt, initProcess);
     taskManager.InitTask(&initTask);
-    
- 
-    /*
-    printf("Initializing Hardware, Stage 1\n");
-    
-    #ifdef GRAPHICSMODE
-        Desktop desktop(320,200, 0x00,0x00,0xA8);
-    #endif
-    
-    DriverManager drvManager;
-    
-        #ifdef GRAPHICSMODE
-            KeyboardDriver keyboard(&interrupts, &desktop);
-        #else
-            PrintfKeyboardEventHandler kbhandler;
-            KeyboardDriver keyboard(&interrupts, &kbhandler);
-        #endif
-        drvManager.AddDriver(&keyboard);
-        
-    
-        #ifdef GRAPHICSMODE
-            MouseDriver mouse(&interrupts, &desktop);
-        #else
-            MouseToConsole mousehandler;
-            MouseDriver mouse(&interrupts, &mousehandler);
-        #endif
-        drvManager.AddDriver(&mouse);
-        
-        PeripheralComponentInterconnectController PCIController;
-        PCIController.SelectDrivers(&drvManager, &interrupts);
-
-        #ifdef GRAPHICSMODE
-            VideoGraphicsArray vga;
-        #endif
-        
-    printf("Initializing Hardware, Stage 2\n");
-        drvManager.ActivateAll();
-        
-    printf("Initializing Hardware, Stage 3\n");
-
-    #ifdef GRAPHICSMODE
-        vga.SetMode(320,200,8);
-        Window win1(&desktop, 10,10,20,20, 0xA8,0x00,0x00);
-        desktop.AddChild(&win1);
-        Window win2(&desktop, 40,15,30,30, 0x00,0xA8,0x00);
-        desktop.AddChild(&win2);
-    #endif
-*/
-
-    /*
-    printf("\nS-ATA primary master: ");
-    AdvancedTechnologyAttachment ata0m(true, 0x1F0);
-    ata0m.Identify();
-    
-    printf("\nS-ATA primary slave: ");
-    AdvancedTechnologyAttachment ata0s(false, 0x1F0);
-    ata0s.Identify();
-    ata0s.Write28(0, (uint8_t*)"http://www.AlgorithMan.de", 25);
-    ata0s.Flush();
-    ata0s.Read28(0, 25);
-    
-    printf("\nS-ATA secondary master: ");
-    AdvancedTechnologyAttachment ata1m(true, 0x170);
-    ata1m.Identify();
-    
-    printf("\nS-ATA secondary slave: ");
-    AdvancedTechnologyAttachment ata1s(false, 0x170);
-    ata1s.Identify();
-    // third: 0x1E8
-    // fourth: 0x168
-    */
-    
-    
-   // amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
-   // eth0->Send((uint8_t*)"Hello Network", 13);
-        
 
     interrupts.Activate();
 
-
-    while(1)
-    {
-
-        /*
-        #ifdef GRAPHICSMODE
-            desktop.Draw(&vga);
-        #endif
-        */
-    }
+    while(1); 
 }

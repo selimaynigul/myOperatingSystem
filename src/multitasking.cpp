@@ -302,15 +302,11 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
         }
     }   
 
-  /*   if (tasks[currentTask].state = ProcessState::RUNNING) {
-        tasks[currentTask].state = ProcessState::READY;
-    }
- */
     if (interruptCount < 15) {
-        printf("current task: ");
-        printfInt(tasks[currentTask].pid);
-        printf(", count: ");
+        printf("Interrupt Count: ");
         printfInt(interruptCount);
+        printf(", Current PID: ");
+        printfInt(tasks[currentTask].pid);
         printf("\n");
     }
 

@@ -24,10 +24,10 @@ namespace myos
             public:
                 virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
                 virtual myos::common::uint32_t Reschedule(myos::common::uint32_t esp);
-                common::uint32_t sys_fork(CPUState* cpustate);
-                bool sys_exit();
-                bool sys_waitpid(common::uint32_t pid);
-                int strategy = 4;
+                common::uint32_t fork(CPUState* cpustate);
+                bool exit();
+                bool waitpid(common::uint32_t pid);
+                int strategy = 0;
 
         };
 
@@ -122,7 +122,7 @@ namespace myos
                 void Activate();
                 void Deactivate();
                 int interruptCount = 0;
-                int strategy = 4;
+                int strategy = 0;
         };
         
     }

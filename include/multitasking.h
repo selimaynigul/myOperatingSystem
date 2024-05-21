@@ -68,7 +68,7 @@ namespace myos
             common::uint32_t ForkTaskThirdStrategy(CPUState* cpustate);
             common::uint32_t ForkTaskDynamic(CPUState* cpustate);
             bool WaitTask(common::uint32_t pid);
-            bool ExitCurrentTask();
+            bool ExitTask();
             common::uint32_t getpid();
 
         public:

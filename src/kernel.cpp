@@ -12,8 +12,6 @@
 #include <gui/desktop.h>
 #include <gui/window.h>
 #include <multitasking.h>
-
-
 #include <drivers/amd_am79c973.h>
 
 using namespace myos;
@@ -26,11 +24,6 @@ GlobalDescriptorTable gdt;
 TaskManager taskManager(&gdt);
 InterruptManager interrupts(0x20, &gdt, &taskManager);
 SyscallHandler syscalls(&interrupts, 0x80);
-
-// #define GRAPHICSMODE
-
-
-
 
 void printf(char* str)
 {
@@ -93,7 +86,7 @@ void printfHex32(uint32_t key)
 
 void printfInt(int num)
 {
-    char buffer[32]; // Assuming a maximum of 32 digits for an int
+    char buffer[32]; 
     int i = 0;
     if (num < 0) {
         printf("-");
@@ -107,19 +100,16 @@ void printfInt(int num)
         buffer[i++] = '0' + (num % 10);
         num /= 10;
     }
-    buffer[i] = '\0'; // Null-terminate the string
+    buffer[i] = '\0';
     char reversed_buffer[32];
     int j = 0;
-    // Reverse the buffer to get the correct order of digits
+
     for (int k = i - 1; k >= 0; --k) {
         reversed_buffer[j++] = buffer[k];
     }
-    reversed_buffer[j] = '\0'; // Null-terminate the reversed string
-    printf(reversed_buffer); // Print the reversed string
+    reversed_buffer[j] = '\0';
+    printf(reversed_buffer); 
 }
-
-
-
 
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
@@ -181,43 +171,78 @@ void longTask() {
 }
 
 void linearSearch() {
-    int arr[] = {1,2,3,4,5,6,7,8,9,10};
-    int size = 10;
-    int target = 6;
-    int result;
-    for (int i = 0; i < size; ++i) {
-        if (arr[i] == target) {
-            result = i;
-            return;
-        }
+    printf("Linear search started...\n");
+    const int n = 100;
+    int arr[n];
+    int size = n;
+    int target = n - 2;
+
+    for (int i = 0; i < n; i++) {
+        arr[i] = i;
     }
-    result = -1;
+
+    int result = 0;
+    int val = -1;
+    for (int i = 0; i < 9999000; i++) {
+        for (int i = 0; i < size; ++i) {
+            if (arr[i] == target) {
+                result = i;
+                val = i;
+                break;
+            }
+        }
+        result = -1;
+    
+    }
+    if (val != -1) {
+        result = val;
+    }
+    printf("Linear search finished... Target: ");
+    printfInt(target);
+    printf(", Target index: ");
+    printfInt(result);
+    printf("\n");
 }
 
 void binarySearch() {
-    int arr[] = {1,2,3,4,5,6,7,8,9,10};
-    int size = 10;
-    int target = 6;
+    printf("Binary search started...\n");
+    const int n = 100;
+    int arr[100];
+    int size = n;
+    int target = 3;
 
-    int left = 0;
-    int right = size - 1;
-
-    int result;
-    
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        
-        if (arr[mid] == target) {
-            result = mid; 
-            return;
-        }
-        if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1; 
-        }
+    for (int i = 0; i < n; i++) {
+        arr[i] = i;
     }
-    result = -1;
+    int result = 0;
+    int val = -1;
+    for (int i = 0; i < 9999990; i++) {
+        int left = 0;
+        int right = size - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (arr[mid] == target) {
+                result = mid; 
+                val = mid;
+                break;
+            }
+            if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1; 
+            }
+        }
+        result = -1;        
+    }
+    if (val != -1) {
+        result = val;
+    }
+    printf("Binary search finished... Target: ");
+    printfInt(target);
+    printf(", Target index: ");
+    printfInt(result);
+    printf("\n");
 }
 
 void collatzSequence() {
@@ -239,13 +264,6 @@ void collatzSequence() {
     printf("Collatz is finished.\n");
 }
 
-void my_sleep2() {
-    int n = 100000;
-    int result = 0;
-    for (int i = 0; i < n; ++i) 
-        for (int j = 0; j < n; ++j) 
-            result = i * j; 
-}
 
 // parent prcoess creates three child process using nested forks
 void partA_process() {   
@@ -288,13 +306,6 @@ void partA_process() {
     }
 }
 
-
-unsigned int seed = 0; 
-int my_rand() {
-    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF;
-    return (int)(seed >> 16);
-}
-
 void partB_first() {
     printf("PART B the first strategy is running.\n");
 
@@ -302,9 +313,7 @@ void partB_first() {
     void (*programs[])() = {longTask, collatzSequence, binarySearch, linearSearch};
     int numPrograms = sizeof(programs) / sizeof(programs[0]);
 
-    // Randomly choose one of the programs
-    int chosenProgramIndex = my_rand() % numPrograms;
-    chosenProgramIndex = 0;
+    int chosenProgramIndex = 0;
     void (*chosenProgram)() = programs[chosenProgramIndex];
 
     int childPids[10];
@@ -335,7 +344,6 @@ void partB_first() {
     exit();
 }
 
-
 void partB_second() {
     printf("PART B the second strategy is running.\n");
  
@@ -345,10 +353,9 @@ void partB_second() {
 
     // Choose 2 programs randomly
     int chosen_programs[2];
+    int chosenProgramIndex = 0;
     for (int i = 0; i < 2; ++i) {
-      //  int chosenProgramIndex = my_rand() % numPrograms;
-        int chosenProgramIndex = 0;
-        chosen_programs[i] = chosenProgramIndex; // Store the index of the chosen program
+        chosen_programs[i] = chosenProgramIndex++; // Store the index of the chosen program
     }
 
     // Load each chosen program 3 times
@@ -409,8 +416,7 @@ void partB_third() {
     if (returnedPid == pid3) {
     }
     else {
-        //binarySearch();
-        longTask();
+        binarySearch();
         exit();
     }
 
@@ -418,8 +424,7 @@ void partB_third() {
     if (returnedPid == pid4) {
     }
     else {
-        //linearSearch();
-        longTask();
+        linearSearch();
         exit();
     }
 

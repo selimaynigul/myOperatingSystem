@@ -8,7 +8,7 @@ using namespace myos::hardwarecommunication;
 void printf(char* str);
 void printfHex(uint8_t);
 
-common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
+common::uint32_t InterruptHandler::fork(CPUState* cpustate) {
     if (strategy < 3) {
         return interruptManager->taskManager->ForkTask(cpustate);
     }
@@ -20,11 +20,11 @@ common::uint32_t InterruptHandler::sys_fork(CPUState* cpustate) {
     }
 }
 
-bool InterruptHandler::sys_exit() {
-    return interruptManager->taskManager->ExitCurrentTask();
+bool InterruptHandler::exit() {
+    return interruptManager->taskManager->ExitTask();
 }
 
-bool InterruptHandler::sys_waitpid(common::uint32_t pid) {
+bool InterruptHandler::waitpid(common::uint32_t pid) {
     return interruptManager->taskManager->WaitTask(pid);
 }
 

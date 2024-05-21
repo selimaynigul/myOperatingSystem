@@ -25,9 +25,9 @@ int myos::getpid() {
 }
 
 // Wait for a specific process ID
-int myos::waitpid(common::uint8_t wPid) {
+int myos::waitpid(common::uint8_t pid) {
     int result;
-    asm("int $0x80" : "=c"(result) : "a"(Syscalls::WAITPID), "b"(wPid));
+    asm("int $0x80" : "=c"(result) : "a"(Syscalls::WAITPID), "b"(pid));
     return result;
 }
 
@@ -35,13 +35,8 @@ void myos::exit() {
     asm("int $0x80" : : "a"(Syscalls::EXIT));
 }
 
-void myos::sysprintf(char* str) {
+void myos::syscall_printf(char* str) {
     asm("int $0x80" : : "a"(Syscalls::PRINTF), "b"(str));
-}
-
-int myos::fork() {
-    int pid;
-    return fork(&pid);
 }
 
 int myos::fork(int *pid) {
@@ -76,25 +71,26 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;
 
         case Syscalls::EXEC: 
-          //  esp = InterruptHandler::sys_exec(cpu->ebx);
+            //esp = InterruptHandler::exec(cpu->ebx);
             break;    
 
         case Syscalls::FORK: 
-            cpu->ecx = InterruptHandler::sys_fork(cpu);
+            cpu->ecx = InterruptHandler::fork(cpu);
             return InterruptHandler::HandleInterrupt(esp);
             break;    
 
         case Syscalls::EXIT: 
-           if(InterruptHandler::sys_exit()) 
+           if(InterruptHandler::exit()) {
               return InterruptHandler::Reschedule(esp);
+           }
             break;    
 
         case Syscalls::GETPID: 
-           // cpu->ecx = InterruptHandler::sys_getpid();
+            //cpu->ecx = InterruptHandler::getpid();
             break; 
 
         case Syscalls::WAITPID: 
-            if(InterruptHandler::sys_waitpid(esp)) {
+            if(InterruptHandler::waitpid(esp)) {
                 return InterruptHandler::Reschedule(esp);
             }
             break;    

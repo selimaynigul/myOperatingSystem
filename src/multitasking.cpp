@@ -100,6 +100,7 @@ void TaskManager::PrintProcessTable() {
     printf("\n");
 }
 
+// add initial process to tasks
 bool TaskManager::InitTask(Task* task) {
     AddTask(task, &tasks[numTasks]); 
     task->priority = 1;
@@ -138,8 +139,6 @@ common::uint32_t TaskManager::getpid() {
 common::uint32_t TaskManager::ForkTask(CPUState* cpustate) {
 
     // fork for part a, b1, b2
-    // fork
-    
     if (numTasks >= 256) 
         return -1; 
     
@@ -166,7 +165,10 @@ common::uint32_t TaskManager::ForkTaskThirdStrategy(CPUState* cpustate) {
     if (numTasks >= 256) 
         return -1; 
     
+    // first process after initial process should be ready,
+    // others will be blocked until 5th timer interrupt
     tasks[numTasks].state = (numTasks == 1) ? ProcessState::READY : ProcessState::BLOCKED;
+    // first process after intitial process has a lower priority than others
     tasks[numTasks].priority = (numTasks == 1) ? 0 : 1;
 
     tasks[numTasks].pid = numTasks;
@@ -189,6 +191,7 @@ common::uint32_t TaskManager::ForkTaskDynamic(CPUState* cpustate) {
     if (numTasks >= 256) 
         return -1; 
     
+    // first process after intitial process has lower priority than others
     tasks[numTasks].priority = (numTasks == 1) ? 0 : 4;
 
     tasks[numTasks].pid = numTasks;
@@ -206,7 +209,7 @@ common::uint32_t TaskManager::ForkTaskDynamic(CPUState* cpustate) {
     return tasks[numTasks - 1].pid;
 }
 
-bool TaskManager::ExitCurrentTask() {
+bool TaskManager::ExitTask() {
      printf("Process with PID ");
     printfInt(currentTask);
     printf(" exited.\n");  
@@ -216,9 +219,11 @@ bool TaskManager::ExitCurrentTask() {
     if (tasks[currentTask].waitparent) {
         int ppid = tasks[currentTask].ppid;
         if (tasks[ppid].state == BLOCKED) {
+            // if there are other childs that the parent waits, just decrease waitnum
             if (tasks[ppid].waitnum > 1) {
                 tasks[ppid].waitnum--;
             } 
+            // if this is the last child that parent waits make parent's state ready
             else {
                 tasks[ppid].waitnum--;
                 tasks[ppid].state = ProcessState::READY;
@@ -291,6 +296,8 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
     if (currentTask >= 0)
         tasks[currentTask].cpustate = cpustate;
 
+    // other processes after first one will arrive after 5th interrupt
+    // so here we change them from blocked to ready
      if (interruptCount == 5) {
         for (int i = 0; i < numTasks; i++) {
             if (i > 1 && tasks[i].state == ProcessState::BLOCKED) {
@@ -299,6 +306,7 @@ CPUState* TaskManager::SchedulePreemptive(CPUState* cpustate, int interruptCount
         }
     }   
 
+    // print necessary infos for the first 15 interrupt
     if (interruptCount < 15) {
         printf("Interrupt Count: ");
         printfInt(interruptCount);
@@ -342,6 +350,7 @@ CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
     if (currentTask >= 0)
         tasks[currentTask].cpustate = cpustate;
 
+    // if the first process is not terminated increase it's priority every 5 interrupt
     if (interruptCount % 5 == 0) {
         if (tasks[1].state != ProcessState::TERMINATED) {
             tasks[1].priority++;
@@ -371,11 +380,11 @@ CPUState* TaskManager::ScheduleDynamic(CPUState* cpustate, int interruptCount) {
     currentTask = highestPriorityTask;
     tasks[currentTask].state = ProcessState::RUNNING;
 
+    // print process table on every 5th interrupt until 100. interrupt
     if (interruptCount % 5 == 0 && interruptCount < 100) {
         PrintProcessTable();
         my_sleep();
     }
-
     if (interruptCount == 100) {
         printf("\nScheduling continues without printing process tables...\n");
         printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
